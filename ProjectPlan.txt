@@ -1,0 +1,25 @@
+GPU Ray tracer (Sarah(sclincke), Krishna(kkeshava))
+--------------------------------------------------- 
+
+We plan to implement a GPU ray tracer with GLSL. 
+
+Basic idea:
+
+- To the vertex shader, we just pass in a quad representing the whole canvas. In the fragment shader, we will implement the actual ray tracer.
+
+- The camera information will be passed into the fragment shader as uniforms. The camera movements will be dealt with in C++.
+
+- We will have a few scenes consisting of different shapes, hardcoded in the fragment shader. These scenes will highlight different features. Which scene will be displayed will be dependent on a uniform in the fragment shader.
+
+- Since there are no recursive functional calls in GLSL, we plan to use for loops instead of recursive calls.
+
+- Features: All features in ray assignment will be re-implemented on the GPU. In addition, we plan on implementing depth of view and transparency. For transparency, we will use snells's law to calculate the outgoing vectors and set the final value of the pixel as a function of the transparent characteristics of the material. Transparency will be calculated similar to reflection.
+
+Depth of view:
+	A focal plane will be set at a certain distance from the film plane.  A ray will be sent through the current canvas point to a point on the focal plane from the camera eye.  We will then generate a number of other rays with starting points close by to the original camera position that go towards the point on the focal plane.  The pixels at these rays' intersection with the film plane will be averaged to give the intensity value of the current point. 
+
+- Time permitting, we will implement the path tracer.
+
+Division of labor: We are going to work together (pair programming).
+
+
