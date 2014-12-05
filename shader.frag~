@@ -1,5 +1,5 @@
 /*GPU Raytracer:
-/1
+
 TODO:
     gl_FragCoord stores window space point.
     Need to pass in viewing transformation of camera.  Can start by setting default for these.
