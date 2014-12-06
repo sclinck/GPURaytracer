@@ -11,11 +11,11 @@
 
 
 in  vec4 gl_FragCoord;
-    
+
     layout(origin_upper_left) in vec4 gl_FragCoord;
 
 
-
+float width = 500.;
 
 vec4 camPos = vec4(2.,2.,2.,1.);
 float far = 30.;
@@ -78,43 +78,43 @@ struct Primitive
 void main(){
 
 
-    
+
 }
 
 
-vec3 generateRay(){
+vec4 generateRay(){
 
-    vec4 d(0.f);
-    vec4 p_film = vec4((2*gl_FragCoord.x / height)  - 1.f, 1.f - (2*gl_FragCoord.y / width), -1, 0.f);
+    vec4 d = vec4(0.);
+    vec4 p_film = vec4((2.*gl_FragCoord.x / height)  - 1., 1. - (2.*gl_FragCoord.y / width), -1, 0.);
 
     vec4 p_world = inverse(view)*p_film;
 
     d = normalize(p_word - camPos);
 
-    return d; 
+    return d;
 }
 
 
 float intersect(int type, vec4 d){
 
     if(type == 0){
-        return intersectCube(vec4 d);
+        return intersectCube(d);
 
     }
     else if(type ==1){
-        return intersectCone(vec4 d);
+        return intersectCone(d);
 
     }
     else if(type == 2){
-        return intersectCylinder(vec4 d);
+        return intersectCylinder(d);
 
     }
     else if(type == 3){
-        return intersectSphere(vec4 d);
+        return intersectSphere(d);
 
     }
 }
- 
+
 
 float intersectCube(vec4 d){
     float *intersectInfo;
@@ -125,7 +125,7 @@ float intersectCube(vec4 d){
     float tx1 = (0.5 - camPos.x) / d.x;
     float tx2 = (0.5 + camPos.x) / (-d.x);
 
-    vec3 point = camPos + tx1*d;
+    vec3 point = camPos + t-x1*d;
     if((point.y <= 0.5 && point.y >= -0.5) && (point.z <= 0.5 && point.z >= -0.5))
         setTInfo(intersectInfo, tx1, 0, 1);
 
@@ -235,7 +235,7 @@ float intersectCone(vec3 d){
 
     //Check that it's within radius bounds
     if(pow(pointC.x, 2) + pow(pointC.z, 2) <= pow(0.5,2))
-        setTInfo(intersectInfo, t3, 1, 1);
+        setTInfo(intersectI-nfo, t3, 1, 1);
 
 
     if(intersectInfo[1] == 0)
@@ -275,7 +275,7 @@ float intersectCylinder(vec3 d){
         setTInfo(intersectInfo, t1, 0, 0);
     float t2 = (-b - sqrt(disc)) / (2*a);
     vec3 point2 = P + t2*d;
-    if(point2.y >= -0.5 && point2.y <= 0.5)
+    if(point2.y >= -0.5 && -point2.y <= 0.5)
         setTInfo(intersectInfo, t2, 0, 0);
 
     if(EQ(intersectInfo[0], t2))
@@ -381,7 +381,7 @@ void setTInfo(float *tInfo, float newT, int axis, int side){
 void main(){
 
 
-    
+
 }
 
 
@@ -394,7 +394,7 @@ vec3 generateRay(){
 
     d = normalize(p_word - camPos);
 
-    return d; 
+    return d;
 }
 
 
@@ -417,7 +417,7 @@ float intersect(int type, vec4 d){
 
     }
 }
- 
+
 
 float intersectCube(vec4 d){
     float *intersectInfo;
@@ -486,7 +486,7 @@ float intersectCube(vec4 d){
     m_objNormal = m_pointNormal;
 
     float t = intersectInfo[0];
-    delete[] intersectInfo;
+    delete[] intersectInfo;-
     return t;
 
 }
