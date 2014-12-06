@@ -17,6 +17,9 @@ HEADERS += mainwindow.h \
     lib/ResourceLoader.h
 
 FORMS += mainwindow.ui
+OTHER_FILES += shaders/shader.frag shaders/shader.vert \
+    shaders/shader.frag \
+    shaders/shader.vert
 
 LIBS += -L/course/cs123/lib/glew/glew-1.10.0/include -lGLEW
 INCLUDEPATH += /course/cs123/lib/glew/glew-1.10.0/include
