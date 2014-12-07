@@ -355,7 +355,7 @@
     //Number of primitive in the sphere scene
     sphere.n_objects = 1;   
     //Set primitives in the sphere scene
-    sphere.objects[0].type = 2;
+    sphere.objects[0].type = 1;
     sphere.objects[0].transformation = mat4(1.0);
     sphere.objects[0].mat.cDiffuse = vec3(1.0);
     sphere.objects[0].mat.cAmbient = vec3(1.0);
