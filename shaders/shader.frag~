@@ -14,7 +14,7 @@
 
   //    layout(origin_upper_left) in vec4 gl_FragCoord;
 
-
+  uniform int sceneType;
   out vec4 fragColor;
   
   float width = 500.;
@@ -77,6 +77,14 @@
       Material mat;
 
   };
+  struct Light
+  {
+      int type; // POINT = 0, DIRECTIONAL = 1;
+      vec3 pos;
+      vec3 direction;
+      vec3 color;
+      vec3 function;
+  }
 
   //Structure to store the objects in the scene
   struct Scene
@@ -87,6 +95,10 @@
     float cDiffuseCoeff;
     float cSpecularCoeff;
     float cTransparencyCoeff;
+    
+    Light lights[4];
+    int n_lights
+
   };
 
 
@@ -100,8 +112,51 @@
 
   //Global variable to store the nearest objects details
   intersectionDetails nearest;
+  //Global variable to store the current scene
+  Scene scene;
+
+/****************************************************************************************************************************/
+//Functions that create the different scenes:
+
+//Scene 1 is a simple white ball centered at the origin with two light : one blue and one red.
+void createScene1(){
+
+    //Number of primitive in the scene scene
+    scene.n_objects = 1;   
+    //Set primitives in the scene scene
+    scene.objects[0].type = 3;
+    scene.objects[0].transformation = mat4(1.0);
+    scene.objects[0].mat.cDiffuse = vec3(1.0);
+    scene.objects[0].mat.cAmbient = vec3(1.0);
+    scene.objects[0].mat.cSpecular = vec3(0.0);
+    scene.objects[0].mat.cReflection = vec3(0.0);
+    scene.objects[0].mat.cRefraction = vec3(0.0);
+    scene.objects[0].mat.shininess = 1.0;
+    scene.cAmbientCoeff = 0.5;
+    scene.cDiffuseCoeff = 0.5;
+    scene.cSpecularCoeff = 0.5;
+    
+    
+    //Lights:
+    scene.lights[0].type = 0; //point light
+    scene.lights[0].pos = vec3(-10., 10., 0.);
+    scene.lights[0].color = vec3(1., 0., 0.);
+    scene.lights[0].function = vec3(1., 0., 0.);
+    
+    scene.lights[1].type = 0; //point light
+    scene.lights[1].pos = vec3(10., 10., 0.);
+    scene.lights[1].color = vec3(0., 0., 1.);
+    scene.lights[1].function = vec3(1., 0., 0.);
+    scene.n_lights = 2;
+}
 
 
+
+
+
+
+
+/****************************************************************************************************************************/
 
 
   vec4 generateRay(){
@@ -345,17 +400,30 @@
       }
   }
 
-  void main(){
+void main(){
 
     //Generate the ray in the worls space corresponding to the current screen space pixel   
     vec4 d_world = generateRay();
+
+
+    createScene1();
+
+
+
+
+
+
+
+
+
+    /* First test - ambient light only, 1 object:
 
     //Create a scene with one sphere
     Scene sphere;
     //Number of primitive in the sphere scene
     sphere.n_objects = 1;   
     //Set primitives in the sphere scene
-    sphere.objects[0].type = 1;
+    sphere.objects[0].type = 2;
     sphere.objects[0].transformation = mat4(1.0);
     sphere.objects[0].mat.cDiffuse = vec3(1.0);
     sphere.objects[0].mat.cAmbient = vec3(1.0);
@@ -364,7 +432,9 @@
     sphere.objects[0].mat.cRefraction = vec3(0.0);
     sphere.objects[0].mat.shininess = 1.0;
     sphere.cAmbientCoeff = 0.5;
+    sphere.n_lights = 0;
     
+
     //loop across objects to find intersection
     nearest.t = -1.;
     for(int i=0; i<sphere.n_objects; ++i){
@@ -378,12 +448,68 @@
       intersect(sphere.objects[i].type, p_object.xyz, d_object.xyz, i);
     
     }
+    fragColor = vec4(0.);
+    if(nearest.t >= 0)
+      fragColor.rgb = fragColor.rgb + sphere.cAmbientCoeff * sphere.objects[nearest.primitiveIndex].mat.cAmbient; 
+      */
+
+    nearest.t = -1.;
+    for(int i=0; i<scene.n_objects; ++i){
+      
+      mat4 transInverse = inverse(scene.objects[i].transformation);
+      //Take p_world and d_world to object space
+      vec4 p_object = transInverse*camPos;
+      vec4 d_object = transInverse*d_world;
+
+      //Compute the intersection with the object
+      intersect(scene.objects[i].type, p_object.xyz, d_object.xyz, i);
+    
+    }
+
+
 
     fragColor = vec4(0.);
     //Lighting for the pixel based on the nearest intersection
-    if(nearest.t >= 0)
-      fragColor.rgb = fragColor.rgb + sphere.cAmbientCoeff * sphere.objects[nearest.primitiveIndex].mat.cAmbient; 
+
+    if(nearest.t >= 0){
+        vec3 normalWorld = normalize(transpose(mat3(inverse(sphere.objects[nearest.primitiveIndex].transformation))) * nearest.normalObject);
+        vec4 intersectPoint = camPos + nearest.t*d_world;
+        vec3 surfaceToEye = normalize(camPos - intersectPoint);
+
+
+        float f_att = 1.;
+        float distToLight;
+        for(int l=0; l < scene.n_lights; l++){
+
+            vec3 surfaceToLightFull = scene.lights[l].pos - intersectPoint.xyz;
+            vec3 surfaceToLight = normalize(surfaceToLightFull);
+
+            vec3 reflectedVector = normalize(2.*normWorld*(dot(normWorld, surfaceToLight)) - surfaceToLight);
+
+            //attenuation for point lights:
+            if(scene.lights[l].type == 0){ //Point light
+                distToLight = surfaceToLightFull.x*surfaceToLightFull.x + surfaceToLightFull.y*surfaceToLightFull.y + surfaceToLightFull.z*surfaceToLightFull.z;
+                f_att = min(1., 1./(scene.lights[l].function.x + scene.lights[l].function.y*sqrt(distToLight) + scene.lights[l].function.z*distToLight));
+            }
+            vec3 diffuseColor =scene.cDiffuseCoeff*scene.objects[nearest.primitiveIndex].mat.cDiffuse*max(0., dot(surfaceToLight, normalWorld));
+            //TODO: calculate specular highlight:
+            vec3 specularColor = scene.cSpecularCoeff*scene.objects[nearest.primitiveIndex].mat.cSpecular*
+                                    pow(max(0., dot(reflectedVector, surfaceToLight)), scene.objects[nearest.primitiveIndex].mat.shininess);
+
+
+            fragColor.rgb += clamp(f_att*scene.lights[l].color*(diffuseColor + specularColor), vec3(0.), vec3(1.));
+
+
+        }
+
+
+
+        
+        fragColor.rgb += scene.cAmbientCoeff * scene.objects[nearest.primitiveIndex].mat.cAmbient; 
+
+    }
+    fragColor = clamp(fragColor.rgb, vec3(0.), vec3(1.));
       
-  }
+}
 
 
