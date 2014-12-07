@@ -10,16 +10,15 @@
   //start out with camera at a fixed point
 
 
-  //in vec4 gl_FragCoord;
 
-  //    layout(origin_upper_left) in vec4 gl_FragCoord;
+      layout(origin_upper_left) in vec4 gl_FragCoord;
 
   uniform int sceneType;
   out vec4 fragColor;
   
   float width = 500.;
 
-  vec4 camPos = vec4(50.,50.,50.,1.);
+  vec4 camPos = vec4(10.,10.,0.,1.);
   float far = 30.;
   float aspectRatio = 1.;
   float heightAngle = 2.*atan(1.,(2.*far));
@@ -38,17 +37,17 @@
 			    0.,                   0.,              1./far,   0.,
 			    0.,                   0.,              0.,        1.));
 
-  mat4 camTranslate = transpose(mat4(1,0,0,-camPos.x,
-					  0,1,0,-camPos.y,
-					  0,0,1,-camPos.z,
-					  0,0,0,1));
+  mat4 camTranslate = transpose(mat4(1.,0.,0.,-camPos.x,
+					  0.,1.,0.,-camPos.y,
+					  0.,0.,1.,-camPos.z,
+					  0.,0.,0.,1.));
   vec3 w = -normalize(vec3(look.x,look.y,look.z));
   vec3 v = normalize(vec3(up.x,up.y,up.z) - (dot(vec3(up.x,up.y,up.z), w)*w));
   vec3 u = normalize(cross(v,w));
-  mat4 camRotate = transpose(mat4(u.x,  u.y,  u.z,  0,
-				  v.x,  v.y,  v.z,  0,
-				  w.x,  w.y,  w.z,  0,
-				  0,    0,    0,    1));
+  mat4 camRotate = transpose(mat4(u.x,  u.y,  u.z,  0.,
+				  v.x,  v.y,  v.z,  0.,
+				  w.x,  w.y,  w.z,  0.,
+				  0.,    0.,    0.,    1.));
 
   mat4 view = camScale*camRotate*camTranslate;
 
@@ -84,7 +83,7 @@
       vec3 direction;
       vec3 color;
       vec3 function;
-  }
+  };
 
   //Structure to store the objects in the scene
   struct Scene
@@ -97,7 +96,7 @@
     float cTransparencyCoeff;
     
     Light lights[4];
-    int n_lights
+    int n_lights;
 
   };
 
@@ -128,10 +127,10 @@ void createScene1(){
     scene.objects[0].transformation = mat4(1.0);
     scene.objects[0].mat.cDiffuse = vec3(1.0);
     scene.objects[0].mat.cAmbient = vec3(1.0);
-    scene.objects[0].mat.cSpecular = vec3(0.0);
+    scene.objects[0].mat.cSpecular = vec3(1.0);
     scene.objects[0].mat.cReflection = vec3(0.0);
     scene.objects[0].mat.cRefraction = vec3(0.0);
-    scene.objects[0].mat.shininess = 1.0;
+    scene.objects[0].mat.shininess = 40.0;
     scene.cAmbientCoeff = 0.5;
     scene.cDiffuseCoeff = 0.5;
     scene.cSpecularCoeff = 0.5;
@@ -147,7 +146,13 @@ void createScene1(){
     scene.lights[1].pos = vec3(10., 10., 0.);
     scene.lights[1].color = vec3(0., 0., 1.);
     scene.lights[1].function = vec3(1., 0., 0.);
-    scene.n_lights = 2;
+    
+    
+    scene.lights[2].type = 0; //point light
+    scene.lights[2].pos = vec3(3., -10., 0.);
+    scene.lights[2].color = vec3(1., 1., 1.);
+    scene.lights[2].function = vec3(1., 0., 0.);
+    scene.n_lights = 3;
 }
 
 
@@ -162,7 +167,7 @@ void createScene1(){
   vec4 generateRay(){
 
       vec4 d = vec4(0.);
-      vec4 p_film = vec4((2.*gl_FragCoord.x / 500.)  - 1., 1. - (2.*gl_FragCoord.y / 500.), -1, 0.);
+      vec4 p_film = vec4((2.*gl_FragCoord.x / 100.)  - 1., 1. - (2.*gl_FragCoord.y / 100.), -1, 0.);
 
       vec4 p_world = inverse(view)*p_film;
 
@@ -405,8 +410,8 @@ void main(){
     //Generate the ray in the worls space corresponding to the current screen space pixel   
     vec4 d_world = generateRay();
 
-
-    createScene1();
+	if(sceneType == 1)
+	  createScene1();
 
 
 
@@ -472,9 +477,9 @@ void main(){
     //Lighting for the pixel based on the nearest intersection
 
     if(nearest.t >= 0){
-        vec3 normalWorld = normalize(transpose(mat3(inverse(sphere.objects[nearest.primitiveIndex].transformation))) * nearest.normalObject);
+        vec3 normalWorld = normalize(transpose(mat3(inverse(scene.objects[nearest.primitiveIndex].transformation))) * nearest.normalObject);
         vec4 intersectPoint = camPos + nearest.t*d_world;
-        vec3 surfaceToEye = normalize(camPos - intersectPoint);
+        vec3 surfaceToEye = normalize(camPos.xyz - intersectPoint.xyz);
 
 
         float f_att = 1.;
@@ -484,7 +489,7 @@ void main(){
             vec3 surfaceToLightFull = scene.lights[l].pos - intersectPoint.xyz;
             vec3 surfaceToLight = normalize(surfaceToLightFull);
 
-            vec3 reflectedVector = normalize(2.*normWorld*(dot(normWorld, surfaceToLight)) - surfaceToLight);
+            vec3 reflectedVector = normalize(2.*normalWorld*(dot(normalWorld, surfaceToLight)) - surfaceToLight);
 
             //attenuation for point lights:
             if(scene.lights[l].type == 0){ //Point light
@@ -492,9 +497,9 @@ void main(){
                 f_att = min(1., 1./(scene.lights[l].function.x + scene.lights[l].function.y*sqrt(distToLight) + scene.lights[l].function.z*distToLight));
             }
             vec3 diffuseColor =scene.cDiffuseCoeff*scene.objects[nearest.primitiveIndex].mat.cDiffuse*max(0., dot(surfaceToLight, normalWorld));
-            //TODO: calculate specular highlight:
+
             vec3 specularColor = scene.cSpecularCoeff*scene.objects[nearest.primitiveIndex].mat.cSpecular*
-                                    pow(max(0., dot(reflectedVector, surfaceToLight)), scene.objects[nearest.primitiveIndex].mat.shininess);
+                                    pow(max(0., dot(reflectedVector, surfaceToEye)), scene.objects[nearest.primitiveIndex].mat.shininess);
 
 
             fragColor.rgb += clamp(f_att*scene.lights[l].color*(diffuseColor + specularColor), vec3(0.), vec3(1.));
@@ -508,7 +513,7 @@ void main(){
         fragColor.rgb += scene.cAmbientCoeff * scene.objects[nearest.primitiveIndex].mat.cAmbient; 
 
     }
-    fragColor = clamp(fragColor.rgb, vec3(0.), vec3(1.));
+    fragColor.rgb = clamp(fragColor.rgb, vec3(0.), vec3(1.));
       
 }
 
