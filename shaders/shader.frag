@@ -17,8 +17,11 @@
   out vec4 fragColor;
   
   float width = 500.;
+  
+  int numRecursions = 5;
+  
 
-  vec4 camPos = vec4(0.,0.,10.,1.);
+  vec4 camPos = vec4(0.,0.,50.,1.);
   float far = 30.;
   float aspectRatio = 1.;
   float heightAngle = 2.*atan(1.,(2.*far));
@@ -110,7 +113,7 @@
   };
 
   //Global variable to store the nearest objects details
-  intersectionDetails nearest;
+//  intersectionDetails nearest;
   //Global variable to store the current scene
   Scene scene;
 
@@ -122,7 +125,7 @@ void createScene1(){
 
     //Number of primitive in the scene scene
     scene.n_objects = 1;   
-    //Set primitives in the scene scene
+    //Set first  primitives in the scene scene
     scene.objects[0].type = 3;
     scene.objects[0].transformation = mat4(1.0);
     scene.objects[0].mat.cDiffuse = vec3(1.0);
@@ -134,6 +137,21 @@ void createScene1(){
     scene.cAmbientCoeff = 0.5;
     scene.cDiffuseCoeff = 0.5;
     scene.cSpecularCoeff = 0.5;
+
+    //Set second primitives in the scene scene
+    /*scene.objects[1].type = 3;
+    
+    scene.objects[1].transformation = mat4(1.0);
+    scene.objects[1].transformation[3][1] = -50.;
+    scene.objects[1].transformation[3][0] = 50.;
+
+    
+    scene.objects[1].mat.cDiffuse = vec3(1.0);
+    scene.objects[1].mat.cAmbient = vec3(1.0);
+    scene.objects[1].mat.cSpecular = vec3(1.0);
+    scene.objects[1].mat.cReflection = vec3(0.0);
+    scene.objects[1].mat.cRefraction = vec3(0.0);
+    scene.objects[1].mat.shininess = 40.0;*/
     
     
     //Lights:
@@ -177,7 +195,7 @@ void createScene1(){
   }
 
 
-  void setIntersectionDetails(float newT, vec3 normal, int index){
+  void setIntersectionDetails(float newT, vec3 normal, inout intersectionDetails  nearest, int index){
 
 
       if(newT >= 0){
@@ -194,7 +212,7 @@ void createScene1(){
 
 
   //ALL INTERSECTS DEAL IN OBJECT SPACE
-  void intersectCube(vec3 P, vec3 d, int index){
+  void intersectCube(vec3 P, vec3 d, inout intersectionDetails  nearest, int index){
     
 
       float tx1 = (0.5 - P.x) / d.x;
@@ -203,7 +221,7 @@ void createScene1(){
       vec3 point = P + tx1*d;
       if((point.y <= 0.5 && point.y >= -0.5) && (point.z <= 0.5 && point.z >= -0.5)){
 	  normal = vec3(1.0f, 0.0f, 0.0f);
-	  setIntersectionDetails(tx1, normal, index);
+	  setIntersectionDetails(tx1, normal, nearest, index);
 	  
 	  }
 
@@ -211,7 +229,7 @@ void createScene1(){
       if((point.y <= 0.5 && point.y >= -0.5) && (point.z <= 0.5 && point.z >= -0.5)){
 
 	  normal = vec3(-1.0f, 0.0f, 0.0f);
-	  setIntersectionDetails(tx2, normal, index);
+	  setIntersectionDetails(tx2, normal, nearest, index);
 
       }
 
@@ -223,13 +241,13 @@ void createScene1(){
       if((point.x <= 0.5 && point.x >= -0.5) && (point.z <= 0.5 && point.z >= -0.5)){
 
 	  normal = vec3(0.0f, 1.0f, 0.0f);
-	  setIntersectionDetails(ty1, normal, index);
+	  setIntersectionDetails(ty1, normal, nearest, index);
       }
       point = P + ty2*d;
       if((point.x <= 0.5 && point.x >= -0.5) && (point.z <= 0.5 && point.z >= -0.5)){
 
 	  normal = vec3(0.0f, -1.0f, 0.0f);
-	  setIntersectionDetails(ty2, normal, index);
+	  setIntersectionDetails(ty2, normal, nearest, index);
 
 
       }
@@ -242,20 +260,20 @@ void createScene1(){
       if((point.x <= 0.5 && point.x >= -0.5) && (point.y <= 0.5 && point.y >= -0.5)){
 
 	  normal = vec3(0.0f, 0.0f, 1.0f);
-	  setIntersectionDetails(tz1, normal, index);
+	  setIntersectionDetails(tz1, normal, nearest, index);
 
       }
       point = P + tz2*d;
       if((point.x <= 0.5 && point.x >= -0.5) && (point.y <= 0.5 && point.y >= -0.5)){
 
 	  normal = vec3(0.0f, 0.0f, -1.0f);
-	  setIntersectionDetails(tz2, normal, index);
+	  setIntersectionDetails(tz2, normal, nearest, index);
       }
 
     
 
   }
-  void intersectCone(vec3 P, vec3 d, int index){
+  void intersectCone(vec3 P, vec3 d, inout intersectionDetails  nearest, int index){
     
 
 
@@ -282,7 +300,7 @@ void createScene1(){
       if(P.y + t1*d.y <= 0.5 && P.y + t1*d.y >= -0.5){
 
 	normal = normalize(vec3(2.f*point.x, 0.25f*(1.f - 2.f*point.y), 2.f*point.z));
-	setIntersectionDetails(t1, normal, index);
+	setIntersectionDetails(t1, normal, nearest, index);
 
       }
       point = P+ t2*d;
@@ -290,7 +308,7 @@ void createScene1(){
       if(P.y + t2*d.y <= 0.5 && P.y + t2*d.y >= -0.5){
 
 	  normal = normalize(vec3(2.f*point.x, 0.25f*(1.f - 2.f*point.y), 2.f*point.z));
-	  setIntersectionDetails(t2, normal, index);
+	  setIntersectionDetails(t2, normal, nearest, index);
 
       }
     
@@ -303,13 +321,13 @@ void createScene1(){
       //Check that it's within radius bounds
       if(pow(pointCap.x, 2) + pow(pointCap.z, 2.) <= pow(0.5,2.)){
 	  normal = vec3(0.0f, -1.0f, 0.0f);
-	  setIntersectionDetails(t2, normal, index);
+	  setIntersectionDetails(t2, normal, nearest, index);
       }
       }
 
       
   }
-  void intersectCylinder(vec3 P, vec3 d, int index){
+  void intersectCylinder(vec3 P, vec3 d, inout intersectionDetails  nearest, int index){
     
       float a = pow(d.x,2.) + pow(d.z, 2.);
       float b = 2*P.x*d.x + 2*P.z*d.z;
@@ -326,14 +344,14 @@ void createScene1(){
       if(point.y >= -0.5 && point.y <= 0.5){
 	  normal = normalize(vec3(2.f*point.x, 0.0, 2.*point.z));
 
-	  setIntersectionDetails(t1, normal, index);
+	  setIntersectionDetails(t1, normal, nearest,  index);
 	  }
       float t2 = (-b - sqrt(disc)) / (2*a);
       point = P + t2*d;
       if(point.y >= -0.5 && point.y <= 0.5){
 	  normal = normalize(vec3(2.*point.x, 0.0f, 2.*point.z));
 
-	  setIntersectionDetails(t2, normal, index);
+	  setIntersectionDetails(t2, normal, nearest,  index);
       }
 
       //caps:
@@ -345,19 +363,19 @@ void createScene1(){
       vec3 pointCap = P + t3*d;
       if(pow(pointCap.x,2.) + pow(pointCap.z,2.) <= (pow(0.5,2.))){
 	  normal = vec3(0.0, 1., 0.0);
-	  setIntersectionDetails(t3, normal, index);
+	  setIntersectionDetails(t3, normal, nearest,  index);
 	  
 	  }
 
       pointCap = P + t4*d;
       if(pow(pointCap.x,2.) + pow(pointCap.z,2.) <= (pow(0.5,2.))){
 	  normal = vec3(0.0,-1. , 0.0);
-	  setIntersectionDetails(t3, normal, index);
+	  setIntersectionDetails(t3, normal, nearest,  index);
 	  
 	  }
 	  }
   }
-  void intersectSphere(vec3 P, vec3 d, int index){
+  void intersectSphere(vec3 P, vec3 d, inout intersectionDetails  nearest,  int index){
 
       float a = pow(d.x,2.) + pow(d.y,2.) + pow(d.z,2.);
       float b = (2*P.x*d.x + 2*P.y*d.y + 2*P.z*d.z);
@@ -374,38 +392,120 @@ void createScene1(){
       vec3 normal = normalize(2.f*(vec4(point,0.f))).xyz;
 
       
-      setIntersectionDetails(t1, normal, index);
+      setIntersectionDetails(t1, normal, nearest,  index);
       
       point = P + t2*d;
       normal = normalize(2.f*(vec4(point,0.f))).xyz;
       
-      setIntersectionDetails(t2, normal, index);
+      setIntersectionDetails(t2, normal, nearest,  index);
       }
   }
 
 
-    void intersect(int type, vec3 p_object, vec3 d_object, int index){
+void intersect(int type, vec3 p_object, vec3 d_object, inout intersectionDetails  nearest, int index){
 
 
       if(type == 0){
-	  intersectCube(p_object, d_object, index);
+	  intersectCube(p_object, d_object, nearest, index);
 
       }
       else if(type ==1){
-	  intersectCone(p_object, d_object,index);
+	  intersectCone(p_object, d_object, nearest, index);
 
       }
       else if(type == 2){
-	  intersectCylinder(p_object, d_object,index);
+	  intersectCylinder(p_object, d_object, nearest, index);
 
       }
       else if(type == 3){
-	  intersectSphere(p_object, d_object,index);
+	  intersectSphere(p_object, d_object, nearest, index);
 
       }
   }
 
+  
+bool lightBlocked(vec4 intersectionPoint, vec3 surfaceToLight, float distToLight)
+{
+  //Intersect with the object
+  intersectionDetails nearest;
+  nearest.t = -1;
+  
+
+  //Check intersection with all object
+  for(int i=0; i<scene.n_objects; ++i){   
+        
+      mat4 transInverse = inverse(scene.objects[i].transformation);
+      //Take p_world and d_world to object space
+      vec4 intersectPointObject = transInverse*(intersectionPoint + 0.001*vec4(surfaceToLight, 0.f));
+      vec3 surfaceToLightObject = mat3(transInverse)*surfaceToLight;
+      //Compute itnersection
+      intersect(scene.objects[i].type, intersectPointObject.xyz, surfaceToLightObject, nearest, i);
+  }
+  
+  if(nearest.t > 0. && !isinf(distToLight)){
+    //Compute distance from intersection point to new intersection point
+    float distToObject = length(nearest.t*surfaceToLight);
+    if(distToObject > distToLight){
+      return false;
+    }
+  }
+  
+  return (nearest.t > 0);
+}
+
+
+vec3 diffuseAndSpecular(vec4 intersectPoint, vec3 normalWorld, intersectionDetails nearest, vec3 surfaceToEye){
+
+        vec3 color = vec3(0.);
+	float distToLight;
+	float f_att;
+        for(int l=0; l < scene.n_lights; l++){
+
+	    vec3 surfaceToLightFull = scene.lights[l].pos - intersectPoint.xyz;
+	    vec3 surfaceToLight = normalize(surfaceToLightFull);
+
+            //attenuation for point lights:
+            if(scene.lights[l].type == 0){ //Point light
+                distToLight = length(surfaceToLightFull);
+                f_att = min(1., 1./(scene.lights[l].function.x + scene.lights[l].function.y*distToLight + scene.lights[l].function.z*pow(distToLight,2.)));
+            }else{
+		distToLight = 1./0.;	      
+            }
+            //Check for shadows
+            
+            if(!lightBlocked(intersectPoint, surfaceToLight, distToLight)){
+
+        
+	      vec3 reflectedLight = normalize(2.*normalWorld*(dot(normalWorld, surfaceToLight)) - surfaceToLight);
+
+	      vec3 diffuseColor =scene.cDiffuseCoeff*scene.objects[nearest.primitiveIndex].mat.cDiffuse*max(0., dot(surfaceToLight, normalWorld));
+
+	      vec3 specularColor = scene.cSpecularCoeff*scene.objects[nearest.primitiveIndex].mat.cSpecular*
+				      pow(max(0., dot(reflectedLight, surfaceToEye)), scene.objects[nearest.primitiveIndex].mat.shininess);
+              
+	     			      
+				      
+
+	      color += clamp(f_att*scene.lights[l].color*(diffuseColor + specularColor), vec3(0.), vec3(1.)) ;
+	      }
+	      
+
+        }
+
+        return color;
+
+}
+
+  
+vec3 textureColor(intersectionDetails nearest, ){
+  
+}
+  
 void main(){
+
+    
+    intersectionDetails nearest;
+
 
     //Generate the ray in the worls space corresponding to the current screen space pixel   
     vec4 d_world = generateRay();
@@ -413,50 +513,6 @@ void main(){
 	if(sceneType == 1)
 	  createScene1();
 
-
-
-
-
-
-
-
-
-    /* First test - ambient light only, 1 object:
-
-    //Create a scene with one sphere
-    Scene sphere;
-    //Number of primitive in the sphere scene
-    sphere.n_objects = 1;   
-    //Set primitives in the sphere scene
-    sphere.objects[0].type = 2;
-    sphere.objects[0].transformation = mat4(1.0);
-    sphere.objects[0].mat.cDiffuse = vec3(1.0);
-    sphere.objects[0].mat.cAmbient = vec3(1.0);
-    sphere.objects[0].mat.cSpecular = vec3(0.0);
-    sphere.objects[0].mat.cReflection = vec3(0.0);
-    sphere.objects[0].mat.cRefraction = vec3(0.0);
-    sphere.objects[0].mat.shininess = 1.0;
-    sphere.cAmbientCoeff = 0.5;
-    sphere.n_lights = 0;
-    
-
-    //loop across objects to find intersection
-    nearest.t = -1.;
-    for(int i=0; i<sphere.n_objects; ++i){
-      
-      mat4 transInverse = inverse(sphere.objects[i].transformation);
-      //Take p_world and d_world to object space
-      vec4 p_object = transInverse*camPos;
-      vec4 d_object = transInverse*d_world;
-
-      //Compute the intersection with the object
-      intersect(sphere.objects[i].type, p_object.xyz, d_object.xyz, i);
-    
-    }
-    fragColor = vec4(0.);
-    if(nearest.t >= 0)
-      fragColor.rgb = fragColor.rgb + sphere.cAmbientCoeff * sphere.objects[nearest.primitiveIndex].mat.cAmbient; 
-      */
 
     nearest.t = -1.;
     for(int i=0; i<scene.n_objects; ++i){
@@ -467,7 +523,7 @@ void main(){
       vec4 d_object = transInverse*d_world;
 
       //Compute the intersection with the object
-      intersect(scene.objects[i].type, p_object.xyz, d_object.xyz, i);
+      intersect(scene.objects[i].type, p_object.xyz, d_object.xyz, nearest, i);
     
     }
 
@@ -481,36 +537,56 @@ void main(){
         vec4 intersectPoint = camPos + nearest.t*d_world;
         vec3 surfaceToEye = normalize(camPos.xyz - intersectPoint.xyz);
 
-
+	int prevPrimitiveIndex = nearest.primitiveIndex;
         float f_att = 1.;
         float distToLight;
-        for(int l=0; l < scene.n_lights; l++){
+        
+        vec3 diffuseAndSpecularColor = diffuseAndSpecular(intersectPoint, normalWorld, nearest, surfaceToEye);
+	
+        
+        vec3 reflectColor = vec3(0.);
+        intersectionDetails recursiveNearest;        
+        for(int i =0; i<numRecursions; ++i){
+	      recursiveNearest.t = -1;
+	      vec3 reflectedEye = normalize(2.*normalWorld*(dot(normalWorld, surfaceToEye)) - surfaceToEye);
 
-            vec3 surfaceToLightFull = scene.lights[l].pos - intersectPoint.xyz;
-            vec3 surfaceToLight = normalize(surfaceToLightFull);
+	      for(int j=0; j<scene.n_objects; ++j){
+	
+		mat4 transInverse = inverse(scene.objects[j].transformation);
+		//Take p_world and d_world to object space
+		vec4 p_object = transInverse*intersectPoint;
+		vec3 d_object = mat3(transInverse)*reflectedEye;
 
-            vec3 reflectedVector = normalize(2.*normalWorld*(dot(normalWorld, surfaceToLight)) - surfaceToLight);
+		//Compute the intersection with the object
+		intersect(scene.objects[j].type, p_object.xyz, d_object, recursiveNearest, j);
+      
+	      }
+	      
 
-            //attenuation for point lights:
-            if(scene.lights[l].type == 0){ //Point light
-                distToLight = surfaceToLightFull.x*surfaceToLightFull.x + surfaceToLightFull.y*surfaceToLightFull.y + surfaceToLightFull.z*surfaceToLightFull.z;
-                f_att = min(1., 1./(scene.lights[l].function.x + scene.lights[l].function.y*sqrt(distToLight) + scene.lights[l].function.z*distToLight));
-            }
-            vec3 diffuseColor =scene.cDiffuseCoeff*scene.objects[nearest.primitiveIndex].mat.cDiffuse*max(0., dot(surfaceToLight, normalWorld));
+	   if(recursiveNearest.t >= 0){
+           //Change new intersection values
+           intersectPoint += vec4(recursiveNearest.t*reflectedEye, 1.); 
 
-            vec3 specularColor = scene.cSpecularCoeff*scene.objects[nearest.primitiveIndex].mat.cSpecular*
-                                    pow(max(0., dot(reflectedVector, surfaceToEye)), scene.objects[nearest.primitiveIndex].mat.shininess);
+       
+           
+	   normalWorld = normalize(transpose(mat3(inverse(scene.objects[recursiveNearest.primitiveIndex].transformation))) * recursiveNearest.normalObject);
+	   surfaceToEye = normalize(camPos - intersectPoint).xyz;
 
-
-            fragColor.rgb += clamp(f_att*scene.lights[l].color*(diffuseColor + specularColor), vec3(0.), vec3(1.));
-
+	   reflectColor += scene.cSpecularCoeff*scene.objects[prevPrimitiveIndex].mat.cReflection*(diffuseAndSpecular(intersectPoint, normalWorld, recursiveNearest, surfaceToEye) + 
+			    scene.cAmbientCoeff*scene.objects[recursiveNearest.primitiveIndex].mat.cAmbient);
+  
+	  prevPrimitiveIndex = recursiveNearest.primitiveIndex;
 
         }
+           
+	  
+        }
+        
 
 
 
         
-        fragColor.rgb += scene.cAmbientCoeff * scene.objects[nearest.primitiveIndex].mat.cAmbient; 
+        fragColor.rgb += scene.cAmbientCoeff * scene.objects[nearest.primitiveIndex].mat.cAmbient + diffuseAndSpecularColor + reflectColor; 
 
     }
     fragColor.rgb = clamp(fragColor.rgb, vec3(0.), vec3(1.));

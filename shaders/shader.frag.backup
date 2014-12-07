@@ -457,8 +457,7 @@ bool lightBlocked(vec4 intersectionPoint, vec3 surfaceToLight, float distToLight
 vec3 diffuseAndSpecular(vec4 intersectPoint, vec3 normalWorld, intersectionDetails nearest, vec3 surfaceToEye){
 
         vec3 color = vec3(0.);
-	float distToLight;
-	float f_att;
+
         for(int l=0; l < scene.n_lights; l++){
 
 	    vec3 surfaceToLightFull = scene.lights[l].pos - intersectPoint.xyz;
@@ -551,24 +550,24 @@ void main(){
 		mat4 transInverse = inverse(scene.objects[j].transformation);
 		//Take p_world and d_world to object space
 		vec4 p_object = transInverse*intersectPoint;
-		vec3 d_object = mat3(transInverse)*reflectedEye;
+		vec4 d_object = transInverse*reflectedEye;
 
 		//Compute the intersection with the object
-		intersect(scene.objects[j].type, p_object.xyz, d_object, recursiveNearest, j);
+		intersect(scene.objects[j].type, p_object.xyz, d_object.xyz, recursiveNearest, j);
       
 	      }
 	      
 
-	   if(recursiveNearest.t >= 0){
+	   if(t >= 0){
            //Change new intersection values
-           intersectPoint += vec4(recursiveNearest.t*reflectedEye, 1.); 
+           intersectPoint += recursiveNearest.t*reflectedEye; 
 
        
            
 	   normalWorld = normalize(transpose(mat3(inverse(scene.objects[recursiveNearest.primitiveIndex].transformation))) * recursiveNearest.normalObject);
-	   surfaceToEye = normalize(camPos - intersectPoint).xyz;
+	   surfaceToEye = normalize(camPos - intersectPoint);
 
-	   reflectColor += scene.cSpecularCoeff*scene.objects[prevPrimitiveIndex].mat.cReflection*(diffuseAndSpecular(intersectPoint, normalWorld, recursiveNearest, surfaceToEye) + 
+	   reflectColor += scene.cSpecularCoeff*scene.objects[prevPrimitiveIndex].cReflection*(diffuseAndSpecular(intersectPoint, normalWorld, recursiveNearest, surfaceToEye) + 
 			    scene.cAmbientCoeff*scene.objects[recursiveNearest.primitiveIndex].mat.cAmbient);
   
 	  prevPrimitiveIndex = recursiveNearest.primitiveIndex;
@@ -582,7 +581,7 @@ void main(){
 
 
         
-        fragColor.rgb += scene.cAmbientCoeff * scene.objects[nearest.primitiveIndex].mat.cAmbient + diffuseAndSpecularColor + reflectColor; 
+        fragColor.rgb += scene.cAmbientCoeff * scene.objects[nearest.primitiveIndex].mat.cAmbient + scene.cSpecularCoeff*scene.objects[nearest.primitiveIndex].mat.cReflection*reflectColor; 
 
     }
     fragColor.rgb = clamp(fragColor.rgb, vec3(0.), vec3(1.));
