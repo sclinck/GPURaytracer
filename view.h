@@ -12,6 +12,7 @@ class View : public QGLWidget
 public:
     View(QWidget *parent);
     ~View();
+    void settingsChanged();
 
 private:
     QTime time;
@@ -27,6 +28,8 @@ private:
 
     void keyPressEvent(QKeyEvent *event);
     void keyReleaseEvent(QKeyEvent *event);
+
+    GLuint m_shader;
 
 private slots:
     void tick();

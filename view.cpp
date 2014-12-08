@@ -1,6 +1,10 @@
+#include "lib/resourceloader.h"
+
 #include "view.h"
+
 #include <QApplication>
 #include <QKeyEvent>
+
 
 View::View(QWidget *parent) : QGLWidget(parent)
 {
@@ -27,6 +31,20 @@ void View::initializeGL()
     // method. Before this method is called, there is no active OpenGL
     // context and all OpenGL calls have no effect.
 
+    //initialize glew
+    GLenum err = glewInit();
+    if ( GLEW_OK != err )
+    {
+        /* Problem: glewInit failed, something is seriously wrong. */
+        fprintf( stderr, "Error: %s\n", glewGetErrorString( err ) );
+    }
+    fprintf( stdout, "Status: Using GLEW %s\n", glewGetString( GLEW_VERSION ) );
+
+
+    m_shader = ResourceLoader::loadShaders( ":/shaders/shader.vert", ":/shaders/shader.frag" );
+
+
+
     // Start a timer that will try to get 60 frames per second (the actual
     // frame rate depends on the operating system and other running programs)
     time.start();
@@ -45,6 +63,16 @@ void View::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // TODO: Implement the demo rendering here
+
+    glUseProgram(m_shader);
+    glUniform1i(glGetUniformLocation(m_shader, "sceneType"), 1);
+
+
+
+
+    glUseProgram(0);
+
+
 }
 
 void View::resizeGL(int w, int h)
@@ -97,4 +125,10 @@ void View::tick()
 
     // Flag this view for repainting (Qt will call paintGL() soon after)
     update();
+}
+
+void View::settingsChanged() {
+
+    // TODO: Process changes to the application settings.
+
 }

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>748</width>
+    <width>800</width>
     <height>600</height>
    </rect>
   </property>
@@ -28,130 +28,119 @@
      <number>0</number>
     </property>
     <item>
-     <widget class="QWidget" name="widget" native="true">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <widget class="QGroupBox" name="groupBox">
-       <property name="geometry">
-        <rect>
-         <x>8</x>
-         <y>8</y>
-         <width>111</width>
-         <height>111</height>
-        </rect>
-       </property>
+     <widget class="View" name="view" native="true"/>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QDockWidget" name="sideBar">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="locale">
+    <locale language="English" country="UnitedStates"/>
+   </property>
+   <property name="features">
+    <set>QDockWidget::NoDockWidgetFeatures</set>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QGroupBox" name="Scenes">
        <property name="title">
         <string>Scenes</string>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayout">
-        <item>
-         <widget class="QRadioButton" name="radioButton">
-          <property name="text">
-           <string>Scene 1</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QRadioButton" name="radioButton_3">
-          <property name="text">
-           <string>Scene 2</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QRadioButton" name="radioButton_2">
-          <property name="text">
-           <string>Scene 3</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QGroupBox" name="groupBox_2">
-       <property name="geometry">
-        <rect>
-         <x>8</x>
-         <y>204</y>
-         <width>241</width>
-         <height>121</height>
-        </rect>
-       </property>
-       <property name="title">
-        <string>Effects</string>
-       </property>
-       <widget class="QLabel" name="label">
+       <widget class="QRadioButton" name="sceneTypeSimple">
         <property name="geometry">
          <rect>
-          <x>11</x>
-          <y>28</y>
-          <width>86</width>
-          <height>16</height>
+          <x>20</x>
+          <y>30</y>
+          <width>102</width>
+          <height>20</height>
          </rect>
         </property>
         <property name="text">
-         <string>Depth of View</string>
+         <string>Scene 1</string>
         </property>
        </widget>
-       <widget class="QSlider" name="horizontalSlider">
+       <widget class="QRadioButton" name="sceneTypeCornell">
         <property name="geometry">
          <rect>
-          <x>10</x>
+          <x>20</x>
           <y>50</y>
-          <width>141</width>
-          <height>16</height>
+          <width>102</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Scene 2</string>
+        </property>
+       </widget>
+       <widget class="QRadioButton" name="sceneTypeSpecial1">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>80</y>
+          <width>102</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Scene 3</string>
+        </property>
+       </widget>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="Effects">
+       <property name="title">
+        <string>Effects</string>
+       </property>
+       <widget class="QSlider" name="depthOfViewSlider">
+        <property name="geometry">
+         <rect>
+          <x>40</x>
+          <y>60</y>
+          <width>111</width>
+          <height>20</height>
          </rect>
         </property>
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
        </widget>
-       <widget class="QLineEdit" name="lineEdit">
+       <widget class="QLineEdit" name="depthOfViewBox">
         <property name="geometry">
          <rect>
-          <x>177</x>
-          <y>50</y>
+          <x>150</x>
+          <y>60</y>
           <width>41</width>
-          <height>22</height>
+          <height>21</height>
          </rect>
         </property>
        </widget>
-       <widget class="QCheckBox" name="checkBox">
+       <widget class="QCheckBox" name="depthOfView">
         <property name="geometry">
          <rect>
           <x>10</x>
-          <y>80</y>
-          <width>94</width>
+          <y>40</y>
+          <width>131</width>
           <height>20</height>
          </rect>
         </property>
         <property name="text">
-         <string>Path Tracer</string>
+         <string>Depth of View</string>
         </property>
        </widget>
       </widget>
-      <widget class="QWidget" name="widget_2" native="true">
-       <property name="geometry">
-        <rect>
-         <x>8</x>
-         <y>341</y>
-         <width>229</width>
-         <height>251</height>
-        </rect>
-       </property>
-      </widget>
-     </widget>
-    </item>
-    <item>
-     <widget class="View" name="view" native="true"/>
-    </item>
-   </layout>
+     </item>
+    </layout>
+   </widget>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
