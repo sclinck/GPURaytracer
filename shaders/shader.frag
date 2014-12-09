@@ -35,6 +35,11 @@
 
   vec4 look = vec4(-camPos.xyz, 0.);
   vec4 up = vec4(0.,1.,0.,0.);
+  look = normalize(look);
+  vec3 w = -normalize(vec3(look.x,look.y,look.z));
+  vec3 v = normalize(vec3(up.x,up.y,up.z) - (dot(vec3(up.x,up.y,up.z), w)*w));
+
+  up.xyz = v.xyz;
 
 
   float tan_h = tan(heightAngle/2.);
@@ -52,8 +57,8 @@
 					  0.,1.,0.,-camPos.y,
 					  0.,0.,1.,-camPos.z,
 					  0.,0.,0.,1.));
-  vec3 w = -normalize(vec3(look.x,look.y,look.z));
-  vec3 v = normalize(vec3(up.x,up.y,up.z) - (dot(vec3(up.x,up.y,up.z), w)*w));
+  w = -normalize(vec3(look.x,look.y,look.z));
+  v = normalize(vec3(up.x,up.y,up.z) - (dot(vec3(up.x,up.y,up.z), w)*w));
   vec3 u = normalize(cross(v,w));
   mat4 camRotate = transpose(mat4(u.x,  u.y,  u.z,  0.,
 				  v.x,  v.y,  v.z,  0.,
