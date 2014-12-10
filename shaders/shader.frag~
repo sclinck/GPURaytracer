@@ -138,7 +138,7 @@ void createScene1(){
     scene.objects[0].mat.cDiffuse = vec3(1.0);
     scene.objects[0].mat.cAmbient = vec3(1.0);
     scene.objects[0].mat.cSpecular = vec3(1.0);
-    scene.objects[0].mat.cReflection = vec3(1.0);
+    scene.objects[0].mat.cReflection = vec3(0.0);
     scene.objects[0].mat.cRefraction = vec3(0.0);
     scene.objects[0].mat.shininess = 40.0;
     scene.objects[0].mat.blend = 0.5;
