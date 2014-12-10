@@ -5,7 +5,7 @@
 
 
 #define PI 3.14159265
-
+#define EPSILON 0.01
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
 
@@ -135,10 +135,10 @@ void createScene1(){
     scene.objects[0].transformation = mat4(1.0);
     //scene.objects[0].transformation[3][0] = sin(time);
 
-    scene.objects[0].mat.cDiffuse = vec3(1.0);
-    scene.objects[0].mat.cAmbient = vec3(1.0);
+    scene.objects[0].mat.cDiffuse = vec3(1.0, 1., 0.);
+    scene.objects[0].mat.cAmbient = vec3(0.0);
     scene.objects[0].mat.cSpecular = vec3(1.0);
-    scene.objects[0].mat.cReflection = vec3(0.0);
+    scene.objects[0].mat.cReflection = vec3(1.0);
     scene.objects[0].mat.cRefraction = vec3(0.0);
     scene.objects[0].mat.shininess = 40.0;
     scene.objects[0].mat.blend = 0.5;
@@ -147,15 +147,16 @@ void createScene1(){
     scene.cSpecularCoeff = 0.5;
 
     //Set second primitives in the scene scene
-    scene.objects[1].type = 0;
+    scene.objects[1].type = 3;
     
     scene.objects[1].transformation = mat4(1.0);
-    scene.objects[1].transformation[3][1] = -1.;
+    scene.objects[1].transformation[3][1] = sin(time);
     scene.objects[1].transformation[3][0] = 1.;
+   // scene.objects[0].transformation[3][2] = sin(time);
 
     
     scene.objects[1].mat.cDiffuse = vec3(1.0);
-    scene.objects[1].mat.cAmbient = vec3(1.0);
+    scene.objects[1].mat.cAmbient = vec3(0.0);
     scene.objects[1].mat.cSpecular = vec3(1.0);
     scene.objects[1].mat.cReflection = vec3(0.0);
     scene.objects[1].mat.cRefraction = vec3(0.0);
@@ -163,7 +164,7 @@ void createScene1(){
     
     
     //Lights:
-    scene.lights[0].type = 0; //point light
+    /*scene.lights[0].type = 0; //point light
     scene.lights[0].pos = vec3(-10., 10., 0.);
     scene.lights[0].color = vec3(1., 0., 0.);
     scene.lights[0].function = vec3(1., 0., 0.);
@@ -171,14 +172,14 @@ void createScene1(){
     scene.lights[1].type = 0; //point light
     scene.lights[1].pos = vec3(10., 10., 0.);
     scene.lights[1].color = vec3(0., 0., 1.);
-    scene.lights[1].function = vec3(1., 0., 0.);
+    scene.lights[1].function = vec3(1., 0., 0.);*/
     
     
-    scene.lights[2].type = 0; //point light
-    scene.lights[2].pos = vec3(3., -10., 0.);
-    scene.lights[2].color = vec3(1., 1., 1.);
-    scene.lights[2].function = vec3(1., 0., 0.);
-    scene.n_lights = 3;
+    scene.lights[0].type = 0; //point light
+    scene.lights[0].pos = vec3(3., -10., 0.);
+    scene.lights[0].color = vec3(1., 1., 1.);
+    scene.lights[0].function = vec3(1., 0., 0.);
+    scene.n_lights = 1;
 }
 
 
@@ -444,7 +445,7 @@ bool lightBlocked(vec4 intersectionPoint, vec3 surfaceToLight, float distToLight
         
         mat4 transInverse = inverse(scene.objects[i].transformation);
         //Take p_world and d_world to object space
-        vec4 intersectPointObject = transInverse*(intersectionPoint + 0.001*vec4(surfaceToLight, 0.f));
+        vec4 intersectPointObject = transInverse*(intersectionPoint + EPSILON*vec4(surfaceToLight, 0.f));
         vec3 surfaceToLightObject = mat3(transInverse)*surfaceToLight;
         //Compute itnersection
         intersect(scene.objects[i].type, intersectPointObject.xyz, surfaceToLightObject, nearest, i);
@@ -671,14 +672,14 @@ void main(){
         intersectionDetails recursiveNearest;
         for(int i =0; i<numRecursions; ++i){
             recursiveNearest.t = -1;
-            vec3 reflectedEye = normalize(2.*normalWorld*(dot(normalWorld, surfaceToEye)) - surfaceToEye);
+            vec4 reflectedEye = vec4(normalize(2.*normalWorld*(dot(normalWorld, surfaceToEye)) - surfaceToEye), 0.);
 
             for(int j=0; j<scene.n_objects; ++j){
 
                 mat4 transInverse = inverse(scene.objects[j].transformation);
                 //Take p_world and d_world to object space
-                vec4 p_object = transInverse*intersectPoint;
-                vec4 d_object = transInverse*vec4(reflectedEye, 0.);
+                vec4 p_object = transInverse*(intersectPoint+EPSILON*reflectedEye);
+                vec4 d_object = transInverse*reflectedEye;
 
                 //Compute the intersection with the object
                 intersect(scene.objects[j].type, p_object.xyz, d_object.xyz, recursiveNearest, j);
@@ -688,7 +689,7 @@ void main(){
 
             if(recursiveNearest.t >= 0){
                 //Change new intersection values
-                intersectPoint += vec4(recursiveNearest.t*reflectedEye, 0.);
+                intersectPoint += recursiveNearest.t*reflectedEye;
 
 
 

@@ -1,4 +1,4 @@
-#include "lib/resourceloader.h"
+#include "lib/ResourceLoader.h"
 
 #include "view.h"
 

@@ -28,15 +28,15 @@ OTHER_FILES += shaders/shader.frag shaders/shader.vert \
 
 
 
-LIBS += -L/course/cs123/lib/glew/glew-1.10.0/include -lGLEW
-INCLUDEPATH += /course/cs123/lib/glew/glew-1.10.0/include
-DEPENDPATH += /course/cs123/lib/glew/glew-1.10.0/include
+#LIBS += -L/course/cs123/lib/glew/glew-1.10.0/include -lGLEW
+#INCLUDEPATH += /course/cs123/lib/glew/glew-1.10.0/include
+#DEPENDPATH += /course/cs123/lib/glew/glew-1.10.0/include
 
 
 #NEED THESE TO COMPILE ON MAC OS X:
-#win32:CONFIG(release, debug|release): LIBS += -L/course/cs123/lib/glew/glew-1.10.0/lib/release/ -lGLEW
-#else:win32:CONFIG(debug, debug|release): LIBS += -L/course/cs123/lib/glew/glew-1.10.0/lib/debug/ -lGLEW
-#else:unix: LIBS += -L/opt/local/lib/ -lGLEW
+win32:CONFIG(release, debug|release): LIBS += -L/course/cs123/lib/glew/glew-1.10.0/lib/release/ -lGLEW
+else:win32:CONFIG(debug, debug|release): LIBS += -L/course/cs123/lib/glew/glew-1.10.0/lib/debug/ -lGLEW
+else:unix: LIBS += -L/opt/local/lib/ -lGLEW
 
 #INCLUDEPATH+=/opt/local/include
 #DEPENDPATH+=/opt/local/include
