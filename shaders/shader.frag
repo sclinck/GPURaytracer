@@ -1,5 +1,7 @@
-#version 330 core
+#version 330
 
+
+//TODO: (BUGS): Some aliasing (weird jumping lines in our shapes that shouldn't be there)
 
 
 
@@ -135,13 +137,13 @@ void createScene1(){
     scene.objects[0].transformation = mat4(1.0);
     //scene.objects[0].transformation[3][0] = sin(time);
 
-    scene.objects[0].mat.cDiffuse = vec3(1.0);
+    scene.objects[0].mat.cDiffuse = vec3(0.,0.,1.0);
     scene.objects[0].mat.cAmbient = vec3(0.0);
-    scene.objects[0].mat.cSpecular = vec3(1.0);
+    scene.objects[0].mat.cSpecular = vec3(0.0);
     scene.objects[0].mat.cReflection = vec3(1.0);
     scene.objects[0].mat.cRefraction = vec3(0.0);
     scene.objects[0].mat.shininess = 40.0;
-    scene.objects[0].mat.blend = 0.5;
+    scene.objects[0].mat.blend = .5;
     scene.cAmbientCoeff = 0.5;
     scene.cDiffuseCoeff = 0.5;
     scene.cSpecularCoeff = 0.5;
@@ -150,21 +152,23 @@ void createScene1(){
     scene.objects[1].type = 3;
     
     scene.objects[1].transformation = mat4(1.0);
-    scene.objects[1].transformation[3][1] = sin(time);
-    scene.objects[1].transformation[3][0] = 1.;
+    //scene.objects[1].transformation[3][1] = sin(time);
+    scene.objects[1].transformation[3][0] = 1.5;
    // scene.objects[0].transformation[3][2] = sin(time);
 
     
-    scene.objects[1].mat.cDiffuse = vec3(1.0);
+    scene.objects[1].mat.cDiffuse = vec3(1.,0., 0.);
     scene.objects[1].mat.cAmbient = vec3(0.0);
     scene.objects[1].mat.cSpecular = vec3(1.0);
-    scene.objects[1].mat.cReflection = vec3(0.0);
+    scene.objects[1].mat.cReflection = vec3(.5);
     scene.objects[1].mat.cRefraction = vec3(0.0);
+    scene.objects[1].mat.blend = 0.;
+
     scene.objects[1].mat.shininess = 40.0;
     
     
     //Lights:
-    scene.lights[0].type = 0; //point light
+    /*scene.lights[0].type = 0; //point light
     scene.lights[0].pos = vec3(-10., 10., 0.);
     scene.lights[0].color = vec3(1., 0., 0.);
     scene.lights[0].function = vec3(1., 0., 0.);
@@ -178,8 +182,21 @@ void createScene1(){
     scene.lights[2].type = 0; //point light
     scene.lights[2].pos = vec3(3., -10., 0.);
     scene.lights[2].color = vec3(1., 1., 1.);
+    scene.lights[2].function = vec3(1., 0., 0.);*/
+    scene.lights[0].type = 0; //point light
+    scene.lights[0].pos = vec3(0., 10., 0.);
+    scene.lights[0].color = vec3(1., 1., 1.);
+    scene.lights[0].function = vec3(1., 0., 0.);
+     scene.lights[1].type = 0; //point light
+    scene.lights[1].pos = vec3(0., -10., 0.);
+    scene.lights[1].color = vec3(1., 1., 1.);
+    scene.lights[1].function = vec3(1., 0., 0.);
+    scene.lights[2].type = 0; //point light
+    scene.lights[2].pos = vec3(0., 0., 10.);
+    scene.lights[2].color = vec3(1., 1., 1.);
     scene.lights[2].function = vec3(1., 0., 0.);
     scene.n_lights = 3;
+   // scene.n_lights = 0;
 }
 
 
@@ -388,7 +405,7 @@ void intersectSphere(vec3 P, vec3 d, inout intersectionDetails  nearest,  int in
 
     float a = pow(d.x,2.) + pow(d.y,2.) + pow(d.z,2.);
     float b = (2*P.x*d.x + 2*P.y*d.y + 2*P.z*d.z);
-    float c = pow(P.x,2.) + pow(P.y,2.) + pow(P.z,2.) - pow(0.5, 2.);
+    float c = pow(P.x,2.) + pow(P.y,2.) + pow(P.z,2.) - pow(radius, 2.);
 
     float disc = pow(b,2.) - (4*a*c);
     if(disc >= 0){
@@ -470,29 +487,29 @@ vec3 textureColor(intersectionDetails nearest, vec4 intersectPointWorld){
 
     if(scene.objects[nearest.primitiveIndex].type == 0){
 
-        if(abs(nearest.normalObject.x - 1.) < 0.00001){
+        if(abs(nearest.normalObject.x - 1.) < 0.001){
             u = 0.5f - intersectPointObject.z;
             v = 0.5f - intersectPointObject.y;
-        }else if(abs(nearest.normalObject.x + 1.)< 0.00001){
+        }else if(abs(nearest.normalObject.x + 1.)< 0.001){
             u = 0.5f + intersectPointObject.z;
             v = 0.5f - intersectPointObject.y;
-        }else if(abs(nearest.normalObject.y - 1.) < 0.00001){
+        }else if(abs(nearest.normalObject.y - 1.) < 0.001){
             u = 0.5f + intersectPointObject.x;
             v = 0.5f + intersectPointObject.z;
-        }else if(abs(nearest.normalObject.y + 1.) < 0.00001){
+        }else if(abs(nearest.normalObject.y + 1.) < 0.001){
             u = 0.5f + intersectPointObject.x;
             v = 0.5f - intersectPointObject.z;
-        }else if(abs(nearest.normalObject.z - 1.) < 0.00001){
+        }else if(abs(nearest.normalObject.z - 1.) < 0.001){
             u = 0.5f + intersectPointObject.x;
             v = 0.5f - intersectPointObject.y;
-        }else if(abs(nearest.normalObject.z + 1.) < 0.00001){
+        }else if(abs(nearest.normalObject.z + 1.) < 0.001){
             u = 0.5f - intersectPointObject.x;
             v = 0.5f - intersectPointObject.y;
         }
 
     }else if(scene.objects[nearest.primitiveIndex].type == 1){
 
-        if(abs(nearest.normalObject.y + 1.) < 0.00001){
+        if(abs(nearest.normalObject.y + 1.) < 0.001){
             //bottom face
             u = 0.5f + intersectPointObject.x;
             v = 0.5f - intersectPointObject.z;
@@ -512,11 +529,11 @@ vec3 textureColor(intersectionDetails nearest, vec4 intersectPointWorld){
     }else if(scene.objects[nearest.primitiveIndex].type == 2){
 
         //Cylinder
-        if(abs(nearest.normalObject.y + 1.) < 0.00001){
+        if(abs(nearest.normalObject.y + 1.) < 0.001){
             //bottom face
             u = 0.5f + intersectPointObject.x;
             v = 0.5f - intersectPointObject.z;
-        }else if(abs(nearest.normalObject.y - 1.) < 0.00001){
+        }else if(abs(nearest.normalObject.y - 1.) < 0.001){
             //bottom face
             u = 0.5f + intersectPointObject.x;
             v = 0.5f + intersectPointObject.z;
@@ -532,16 +549,17 @@ vec3 textureColor(intersectionDetails nearest, vec4 intersectPointWorld){
                 u = 1 - theta/(2.0f*PI);
             }
         }
+
     }else{
 
         //Sphere
         //Based on where the ray intersects the sphere, set the texture co-ordinates
-        if(abs(nearest.normalObject.y - 1.) < 0.00001){
+        if(abs(nearest.normalObject.y - 1.) < 0.001){
             //Check if the intersection is at the north pole
             v = 0.0f; //(origin is at the top left corner)
             //u cannot be computed in the conventional way as z and x are zero. Set to some default value.
             u = 0.5f;
-        }else if(abs(nearest.normalObject.y + 1.) < 0.00001){
+        }else if(abs(nearest.normalObject.y + 1.) < 0.001){
             //Check if the intersection is at the south pole
             v = 1.0f; //(origin is at the top left corner)
             //u cannot be computed in the conventional way as z and x are zero. Set to some default value.
@@ -550,7 +568,7 @@ vec3 textureColor(intersectionDetails nearest, vec4 intersectPointWorld){
             //The point of intersection is not a singularity. Compute the u and v in the conventional way.
             //v unit square co-ordinate
             phi = asin(intersectPointObject.y/radius);
-            v = 1.0f - phi/ + 0.5f; //(origin is at the top left corner)
+            v = 1. - (phi/PI + 0.5f); //(origin is at the top left corner)
             //u unit square co-ordinate
             theta = atan(intersectPointObject.z, intersectPointObject.x);
             if(theta < 0.0f){
@@ -570,11 +588,13 @@ vec3 textureColor(intersectionDetails nearest, vec4 intersectPointWorld){
     //Compute actual texture co-ordinates
     int ujw = int(u * j * textureWidth);
     int vkh = int(v * k * textureHeight);
-    int s = ujw % textureWidth;
-    int t = vkh % textureHeight;
+    float s = mod(u * j * textureWidth,float(textureWidth));
+    float t = mod(v * k * textureHeight,float(textureHeight));
 
-    return (texture(tex, vec2(s,t))).rgb;
+    //return (texture(tex, vec2(s,t))).rgb;
+    return (texture(tex, vec2(u*j,v*k))).rgb;
 
+	//return vec3(s / textureHeight,0.,0.);
 
 }
 
@@ -606,7 +626,7 @@ vec3 diffuseAndSpecular(vec4 intersectPoint, vec3 normalWorld, intersectionDetai
             vec3 diffuseColor;
             float blend = scene.objects[nearest.primitiveIndex].mat.blend;
             if(blend > 0.){
-                diffuseColor = ((1-blend)*scene.cDiffuseCoeff*scene.objects[nearest.primitiveIndex].mat.cDiffuse + blend*textureColor(nearest, intersectPoint))*max(0., dot(surfaceToLight, normalWorld));
+                diffuseColor = scene.cDiffuseCoeff*((1-blend)*scene.cDiffuseCoeff*scene.objects[nearest.primitiveIndex].mat.cDiffuse + blend*textureColor(nearest, intersectPoint))*max(0., dot(surfaceToLight, normalWorld));
             }else{
                 diffuseColor = scene.cDiffuseCoeff*scene.objects[nearest.primitiveIndex].mat.cDiffuse*max(0., dot(surfaceToLight, normalWorld));
             }
@@ -671,6 +691,8 @@ void main(){
         vec3 reflectColor = vec3(0.);
         intersectionDetails recursiveNearest;
         for(int i =0; i<numRecursions; ++i){
+                if(scene.objects[prevPrimitiveIndex].mat.cReflection != vec3(0.)){
+
             recursiveNearest.t = -1;
             vec4 reflectedEye = vec4(normalize(2.*normalWorld*(dot(normalWorld, surfaceToEye)) - surfaceToEye), 0.);
 
@@ -687,7 +709,7 @@ void main(){
             }
 
 
-            if(recursiveNearest.t >= 0){
+            if(recursiveNearest.t > 0){
                 //Change new intersection values
                 intersectPoint += recursiveNearest.t*reflectedEye;
 
@@ -702,9 +724,16 @@ void main(){
                 prevPrimitiveIndex = recursiveNearest.primitiveIndex;
 
             }
+            else{
+			  break;
+			}
+			}else{
+			break;
+			}
 
 
         }
+        
         
 
 
