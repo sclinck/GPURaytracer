@@ -739,6 +739,7 @@ void main(){
                 break;
         }
         else{
+            //The ray did not intersect any object. Stop the recursion
             break;
         }
     }
