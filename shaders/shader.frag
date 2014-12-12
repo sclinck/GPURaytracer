@@ -486,12 +486,17 @@ bool lightBlocked(vec4 intersectionPoint, vec3 surfaceToLight, float distToLight
         
         mat4 transInverse = inverse(scene.objects[i].transformation);
         //Take p_world and d_world to object space
-        vec4 intersectPointObject = transInverse*(intersectionPoint + EPSILON*vec4(surfaceToLight, 0.f));
-        vec3 surfaceToLightObject = mat3(transInverse)*surfaceToLight;
-        //Compute itnersection
-        intersect(scene.objects[i].type, intersectPointObject.xyz, surfaceToLightObject, nearest, i);
+        //vec4 intersectPointObject = transInverse*(intersectionPoint + EPSILON*vec4(surfaceToLight, 0.f));
+        //Note: The epsilon has already been added to the intersection point when it was passed in to diffuseAndSpecular.
+        //We don't have to add it again. Also, the direction along which it was being added here is also not right. 
+        //It should have been along the normal.  
+        vec4 intersectPointObject = transInverse*(intersectionPoint);
+        vec4 surfaceToLightObject = transInverse*vec4(surfaceToLight,0.0);
+        //Compute intersection
+        intersect(scene.objects[i].type, intersectPointObject.xyz, surfaceToLightObject.xyz, nearest, i);
     }
     
+    //If there is an intersection
     if(nearest.t > 0. && !isinf(distToLight)){
         //Compute distance from intersection point to new intersection point
         float distToObject = length(nearest.t*surfaceToLight);
@@ -500,6 +505,8 @@ bool lightBlocked(vec4 intersectionPoint, vec3 surfaceToLight, float distToLight
         }
     }
     
+    //If a directional light is blocked, then nearest.t wil be greater than 0. If there is no intersection, the light is not blocked
+    //This also handles the case where the distToObject < distToLight, which means the object is blocking the light.
     return (nearest.t > 0);
 }
 
@@ -636,7 +643,7 @@ vec3 diffuseAndSpecular(vec4 intersectPoint, vec3 normalWorld, intersectionDetai
         vec3 surfaceToLightFull = scene.lights[l].pos - intersectPoint.xyz;
         vec3 surfaceToLight = normalize(surfaceToLightFull);
         
-        //attenuation for point lights:
+        //Attenuation for point lights:
         if(scene.lights[l].type == 0){ //Point light
             distToLight = length(surfaceToLightFull);
             f_att = min(1., 1./(scene.lights[l].function.x + scene.lights[l].function.y*distToLight + scene.lights[l].function.z*pow(distToLight,2.)));
