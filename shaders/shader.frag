@@ -153,7 +153,7 @@ void createScene1(){
     //Set first  primitives in the scene scene
     scene.objects[0].type = 3;
     scene.objects[0].transformation = mat4(1.0);
-    //scene.objects[0].transformation[3][0] = sin(time);
+    scene.objects[0].transformation[3][0] = sin(time);
 
     scene.objects[0].mat.cDiffuse = vec3(0.,0.,1.0);
     scene.objects[0].mat.cAmbient = vec3(0.0);
@@ -735,7 +735,7 @@ void main(){
         
         
         intersectionDetails recursiveNearest;
-		int index = 0;
+/*		int index = 0;
 		//Goes through tree breath first.  Starts at the root and calculates the child's intersectionPoint and color.  Parent is -1 for the root, -2 for any child that wasn't a hit
         for(int i = 0; i < numRecursions; i++){
             //for each depth
@@ -774,10 +774,7 @@ void main(){
 
                         points[childIndex].color = diffuseAndSpecular(points[childIndex].intersectPoint, normalWorld, recursiveNearest, surfaceToEye) +
                                               scene.cAmbientCoeff*scene.objects[recursiveNearest.primitiveIndex].mat.cAmbient;
-                        /*points[childIndex].reflection = scene.objects[recursiveNearest.primitiveIndex].mat.cReflection;
-                        points[childIndex].refraction= scene.objects[recursiveNearest.primitiveIndex].mat.cRefraction;
                         
-						*/
 						points[childIndex].primitiveIndex = recursiveNearest.primitiveIndex;
                         points[childIndex].parent = index;
                         //points[childIndex].F = scene.objects[recursiveNearest.primitiveIndex].mat.ior + 
@@ -881,25 +878,28 @@ void main(){
             
         }
         
-        fragColor.rgb += scene.cAmbientCoeff * scene.objects[nearest.primitiveIndex].mat.cAmbient + points[0].color;
+        fragColor.rgb += scene.cAmbientCoeff * scene.objects[nearest.primitiveIndex].mat.cAmbient + points[0].color;*/
         
          
-       /* vec3 recursiveColors[numRecursions];
-        vec3 reflectiveConstants[numRecursions];
+        //vec3 recursiveColors[numRecursions];
+        //vec3 reflectiveConstants[numRecursions];
         
-        int i =0;
-        intersectionDetails recursiveNearest;
-        for(; i<numRecursions; i++){
-                if(scene.objects[prevPrimitiveIndex].mat.cReflection != vec3(0.)){
+        
+        //vec3 reflectiveAtt = vec3(1.);
+        vec3 reflectiveAtt = scene.cSpecularCoeff*scene.objects[nearest.primitiveIndex].mat.cReflection;
+        //vec3 intersectPoint = vec3(0.);
+        //intersectionDetails recursiveNearest;
+        for(int i =0; i<numRecursions; i++){
+            if(scene.objects[prevPrimitiveIndex].mat.cReflection != vec3(0.)){
 
             recursiveNearest.t = -1;
-            vec4 reflectedEye = vec4(reflect(-surfaceToEye, normalWorld), 0);//vec4(normalize(2.*normalWorld*(dot(normalWorld, surfaceToEye)) - surfaceToEye), 0.);
+            vec4 reflectedEye = vec4(normalize(reflect(-surfaceToEye, normalWorld)), 0);//vec4(normalize(2.*normalWorld*(dot(normalWorld, surfaceToEye)) - surfaceToEye), 0.);
 
             for(int j=0; j<scene.n_objects; ++j){
 
                 mat4 transInverse = inverse(scene.objects[j].transformation);
                 //Take p_world and d_world to object space
-                vec4 p_object = transInverse*(intersectPoint+EPSILON*reflectedEye);
+                vec4 p_object = transInverse*(intersectPoint+EPSILON*vec4(normalWorld, 0.));
                 vec4 d_object = transInverse*reflectedEye;
 
                 //Compute the intersection with the object
@@ -909,18 +909,22 @@ void main(){
 
 
             if(recursiveNearest.t > 0){
+				surfaceToEye = -reflectedEye.xyz;
                 //Change new intersection values
-                intersectPoint += recursiveNearest.t*reflectedEye;
+                intersectPoint += (EPSILON*vec4(normalWorld, 0.)) + recursiveNearest.t*reflectedEye;
 
 			
 
                 normalWorld = normalize(transpose(mat3(inverse(scene.objects[recursiveNearest.primitiveIndex].transformation))) * recursiveNearest.normalObject);
-                surfaceToEye = normalize(camPos - intersectPoint).xyz;
+                //surfaceToEye = normalize(camPos - intersectPoint).xyz;
 				
-				reflectiveConstants[i] = scene.objects[prevPrimitiveIndex].mat.cReflection;
-				recursiveColors[i] = diffuseAndSpecular(intersectPoint, normalWorld, recursiveNearest, surfaceToEye) +
-                                      scene.cAmbientCoeff*scene.objects[recursiveNearest.primitiveIndex].mat.cAmbient;
+				//reflectiveConstants[i] = scene.objects[prevPrimitiveIndex].mat.cReflection;
+				//reflectColor += diffuseAndSpecular(intersectPoint, normalWorld, recursiveNearest, surfaceToEye) +
+                //                      scene.cAmbientCoeff*scene.objects[recursiveNearest.primitiveIndex].mat.cAmbient;
+                reflectColor += reflectiveAtt*(diffuseAndSpecular(intersectPoint, normalWorld, recursiveNearest, surfaceToEye) +
+                                      scene.cAmbientCoeff*scene.objects[recursiveNearest.primitiveIndex].mat.cAmbient);
                 prevPrimitiveIndex = recursiveNearest.primitiveIndex;
+                reflectiveAtt *= scene.objects[recursiveNearest.primitiveIndex].mat.cReflection*scene.cSpecularCoeff;
 
             }
             else{
@@ -932,20 +936,20 @@ void main(){
 
 
         }
-        if( i > 0){
+        /*if( i > 0){
 		  reflectColor = clamp(recursiveColors[i], vec3(0.), vec3(1.));
 		  for(int j = i; j > 0; j--){
 			  reflectColor = clamp(scene.cSpecularCoeff*reflectiveConstants[j]*reflectColor + recursiveColors[j-1], vec3(0.), vec3(1.));
         
 		  }
-        }
+        }*/
         
         
 
 
 
         
-        fragColor.rgb += scene.cAmbientCoeff * scene.objects[nearest.primitiveIndex].mat.cAmbient + diffuseAndSpecularColor + scene.cSpecularCoeff*scene.objects[nearest.primitiveIndex].mat.cReflection*reflectColor;*/
+        fragColor.rgb += scene.cAmbientCoeff * scene.objects[nearest.primitiveIndex].mat.cAmbient + diffuseAndSpecularColor + reflectColor;
 
     }
     fragColor.rgb = clamp(fragColor.rgb, vec3(0.), vec3(1.));
