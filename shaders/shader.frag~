@@ -650,17 +650,19 @@ vec3 diffuseAndSpecular(vec4 intersectPoint, vec3 normalWorld, intersectionDetai
         }else{
             //Distacne to light for directional light is infinity
             distToLight = 1./0.;
+            f_att = 1.0;
         }
-        //Check for shadows
         
+        //Check for shadows        
         if(!lightBlocked(intersectPoint, surfaceToLight, distToLight)){
             
             
-            vec3 reflectedLight = reflect(-surfaceToLight,normalWorld);//normalize(2.*normalWorld*(dot(normalWorld, surfaceToLight)) - surfaceToLight);
+            vec3 reflectedLight = normalize(reflect(-surfaceToLight,normalWorld));//normalize(2.*normalWorld*(dot(normalWorld, surfaceToLight)) - surfaceToLight);
             
             vec3 diffuseColor;
             float blend = scene.objects[nearest.primitiveIndex].mat.blend;
             if(blend > 0.){
+                //If we indeed have a valid blend value. Belnd texture and diffuse terms
                 diffuseColor = ((1-blend)*scene.cDiffuseCoeff*scene.objects[nearest.primitiveIndex].mat.cDiffuse + blend*textureColor(nearest, intersectPoint))*max(0., dot(surfaceToLight, normalWorld));
             }else{
                 diffuseColor = scene.cDiffuseCoeff*scene.objects[nearest.primitiveIndex].mat.cDiffuse*max(0., dot(surfaceToLight, normalWorld));
