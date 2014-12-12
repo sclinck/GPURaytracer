@@ -2,7 +2,7 @@
 
 
 #define PI 3.14159265
-#define EPSILON 0.01
+#define EPSILON 0.001 //Changed from 0.01
 #define numRecursions  4
 #define n_points  int(pow(2., numRecursions+1.) - 1.)
 layout(origin_upper_left) in vec4 gl_FragCoord;
@@ -14,6 +14,7 @@ uniform int textureHeight;
 uniform int sceneType;
 uniform float time;
 uniform float focalLength;
+uniform vec2 size;
 
 
 out vec4 fragColor;
@@ -234,11 +235,11 @@ void createScene1(){
 vec4 generateRay(){
     
     vec4 d = vec4(0.);
-    vec4 p_film = vec4((2.*gl_FragCoord.x / 500.)  - 1., 1. - (2.*gl_FragCoord.y / 500.), -1., 1.);
+    vec4 p_film = vec4((2.*gl_FragCoord.x / size.x)  - 1., 1. - (2.*gl_FragCoord.y / size.y), -1., 1.);
     
     vec4 p_world = inverse(view)*p_film;
     
-    d = normalize(p_world - camPos);
+    d = vec4(normalize(vec3(p_world - camPos)), 1.0);
     
     return d;
 }
@@ -510,6 +511,7 @@ vec3 textureColor(intersectionDetails nearest, vec4 intersectPointWorld){
     
     if(scene.objects[nearest.primitiveIndex].type == 0){
         
+        //Cube
         if(abs(nearest.normalObject.x - 1.) < 0.001){
             u = 0.5f - intersectPointObject.z;
             v = 0.5f - intersectPointObject.y;
@@ -531,7 +533,8 @@ vec3 textureColor(intersectionDetails nearest, vec4 intersectPointWorld){
         }
         
     }else if(scene.objects[nearest.primitiveIndex].type == 1){
-        
+
+        //Cone
         if(abs(nearest.normalObject.y + 1.) < 0.001){
             //bottom face
             u = 0.5f + intersectPointObject.x;
@@ -614,7 +617,7 @@ vec3 textureColor(intersectionDetails nearest, vec4 intersectPointWorld){
     float s = mod(u * j * textureWidth,float(textureWidth));
     float t = mod(v * k * textureHeight,float(textureHeight));
     
-    //return (texture(tex, vec2(s,t))).rgb;
+    //return (texture(tex, vec2(s,t))).rgb; Seems like texture() takes only unit square textures and not the actual texture co-ordinate.
     return (texture(tex, vec2(u*j,v*k))).rgb;
     
     //return vec3(s / textureHeight,0.,0.);
@@ -627,6 +630,7 @@ vec3 diffuseAndSpecular(vec4 intersectPoint, vec3 normalWorld, intersectionDetai
     vec3 color = vec3(0.);
     float distToLight;
     float f_att;
+    //Iterate over all lights; skip the light if any object is blocking it. 
     for(int l=0; l < scene.n_lights; l++){
         
         vec3 surfaceToLightFull = scene.lights[l].pos - intersectPoint.xyz;
@@ -637,6 +641,7 @@ vec3 diffuseAndSpecular(vec4 intersectPoint, vec3 normalWorld, intersectionDetai
             distToLight = length(surfaceToLightFull);
             f_att = min(1., 1./(scene.lights[l].function.x + scene.lights[l].function.y*distToLight + scene.lights[l].function.z*pow(distToLight,2.)));
         }else{
+            //Distacne to light for directional light is infinity
             distToLight = 1./0.;
         }
         //Check for shadows
@@ -710,12 +715,9 @@ void main(){
             
             //surfaceToEye = -reflectedEye.xyz;
             //Change new intersection values (first move the original intersection by epsilon along its normal)
-            intersectPoint += (EPSILON*vec4(normalWorld, 0.)) + nearest.t*fromEye;
-            
-            
-            
-            
-            //Calculate color from lighting, then multiply by reflective attenuation
+            intersectPoint += vec4(EPSILON*normalWorld, 0.) + nearest.t*fromEye;
+                        
+            //Calculate color from lighting, then multiply by reflective attenuation. Compute the diffuse, specular and ambient colors
             fragColor.rgb += reflectiveAtt*(diffuseAndSpecular(intersectPoint, normalWorld, nearest, normalize(-fromEye.xyz)) +
                                             scene.cAmbientCoeff*scene.objects[nearest.primitiveIndex].mat.cAmbient);
             //update reflective attenuation                
