@@ -8,8 +8,8 @@
 
 #define PI 3.14159265
 #define EPSILON 0.01
-#define numRecursions  5
-
+#define numRecursions  4
+#define n_points  int(pow(2., numRecursions+1.) - 1.)
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
 
@@ -69,12 +69,12 @@ mat4 view = camScale*camRotate*camTranslate;
 struct Tree
 {
     int parent;
-    vec4 intersectionPoint;
+    vec4 intersectPoint;
     vec3 color;
-    vec3 reflection;
-    vec3 refraction;
-    float F; //fresnel term
-
+    //vec3 reflection;
+    //vec3 refraction;
+    float F; //fresnel term - need to store this because it depends on whether or not object was hit from the inside.
+	int primitiveIndex;
 
 };
 
@@ -162,6 +162,8 @@ void createScene1(){
     scene.objects[0].mat.cRefraction = vec3(0.0);
     scene.objects[0].mat.shininess = 40.0;
     scene.objects[0].mat.blend = 0.;
+    scene.objects[0].mat.ior = 0.;
+    
     scene.cAmbientCoeff = 0.5;
     scene.cDiffuseCoeff = 0.5;
     scene.cSpecularCoeff = 0.5;
@@ -179,7 +181,11 @@ void createScene1(){
     scene.objects[1].mat.cSpecular = vec3(1.0);
     scene.objects[1].mat.cReflection = vec3(0.5);
     scene.objects[1].mat.cRefraction = vec3(0.0);
+    scene.objects[0].mat.shininess = 15.0;
+
     scene.objects[1].mat.blend = 0.;
+    scene.objects[0].mat.ior = 0.;
+
 
     scene.objects[1].mat.shininess = 40.0;
     
@@ -694,7 +700,8 @@ void main(){
     //Lighting for the pixel based on the nearest intersection
 
     if(nearest.t >= 0){
-        vec3 normalWorld = normalize(transpose(mat3(inverse(scene.objects[nearest.primitiveIndex].transformation))) * nearest.normalObject);
+        vec3 normalWorld = normalize(transpose(inverse(mat3(scene.objects[nearest.primitiveIndex].transformation))) * nearest.normalObject);
+        
         vec4 intersectPoint = camPos + nearest.t*d_world;
         vec3 surfaceToEye = vec3(normalize(camPos - intersectPoint));
 
@@ -707,34 +714,40 @@ void main(){
         
         vec3 reflectColor = vec3(0.);
 
-        /*
-        TODO: TEST THIS  IMPLEMENTATION OF REFRACTION + REFLECTION
+        
 
 
         //Left of tree = reflection, right of tree = refraction
         //For refraction:
-        float n_points = pow(2, numRecursions+1) - 1;
+        float ;
         Tree points[n_points];
-        //-1 for root, -2 for reflection that didn't hit anything, -3 for refraction that didn't hit anything (stopping points)
+        //-1 for root, -2  didn't hit anything
         points[0].parent = -1;
         points[0].intersectPoint = intersectPoint;
         points[0].color = diffuseAndSpecularColor;
-        points[0].reflection = scene.objects[nearest.primitiveIndex].mat.cReflection;
-        points[0].refraction= scene.objects[nearest.primitiveIndex].mat.cRefraction;
-        points[0].F = scene.objects[nearest.primitiveIndex].mat.ior + 
-                    (1 - scene.objects[nearest.primitiveIndex].mat.ior)*(1-dot(surfaceToEye, normalWorld)); 
-
+        points[0].primitiveIndex = nearest.primitiveIndex;
+        //Need to edit this for when no refraction
+        //points[0].F = scene.objects[nearest.primitiveIndex].mat.ior + (1. -  scene.objects[nearest.primitiveIndex].mat.ior)*pow((1.-dot(surfaceToEye, normalWorld)), 5);
+        points[0].F = 1.;
+        
+        //points[0].reflection = scene.objects[nearest.primitiveIndex].mat.cReflection;
+        //points[0].refraction= scene.objects[nearest.primitiveIndex].mat.cRefraction;
+        
+        
+        intersectionDetails recursiveNearest;
+		int index = 0;
+		//Goes through tree breath first.  Starts at the root and calculates the child's intersectionPoint and color.  Parent is -1 for the root, -2 for any child that wasn't a hit
         for(int i = 0; i < numRecursions; i++){
             //for each depth
-            for(int k =0; k < pow(2, i); k+=2){
+            for(int k =0; k < int(pow(2., float(i))); k++){
                 //go through all points (reflective + refractive)
-                int index = pow(2,i)-1+k;
-                int childIndex = pow(2,i+1)-1+(2*k);
+                //int index = int(pow(2.,float(i))-1+k);
+                int childIndex = int(pow(2.,i+1.)-1+(2*k));
 
                 //Reflection:
-                if(points[index].parent != -2 && refl && points[index].reflection != vec3(0.)){
+                if(points[index].parent != -2 && scene.objects[points[index].primitiveIndex].mat.cReflection != vec3(0.)){
                     recursiveNearest.t = -1;
-                    vec4 reflectedEye = vec4(reflect(-surfaceToEye, normalWorld), 0);//vec4(normalize(2.*normalWorld*(dot(normalWorld, surfaceToEye)) - surfaceToEye), 0.);
+                    vec4 reflectedEye = vec4(reflect(-surfaceToEye, normalWorld), 0.);//vec4(normalize(2.*normalWorld*(dot(normalWorld, surfaceToEye)) - surfaceToEye), 0.);
 
                     for(int j=0; j<scene.n_objects; ++j){
 
@@ -752,20 +765,25 @@ void main(){
                     if(recursiveNearest.t > 0){
                         //Change new intersection values
                         points[childIndex].intersectPoint= points[index].intersectPoint + recursiveNearest.t*reflectedEye;
+						
 
                     
 
-                        normalWorld = normalize(transpose(mat3(inverse(scene.objects[recursiveNearest.primitiveIndex].transformation))) * recursiveNearest.normalObject);
+                        normalWorld = normalize(transpose(inverse(mat3(scene.objects[recursiveNearest.primitiveIndex].transformation))) * recursiveNearest.normalObject);
                         surfaceToEye = normalize(camPos -  points[childIndex].intersectPoint).xyz;
 
                         points[childIndex].color = diffuseAndSpecular(points[childIndex].intersectPoint, normalWorld, recursiveNearest, surfaceToEye) +
                                               scene.cAmbientCoeff*scene.objects[recursiveNearest.primitiveIndex].mat.cAmbient;
-                        points[childIndex].reflection = scene.objects[recursiveNearest.primitiveIndex].mat.cReflection;
+                        /*points[childIndex].reflection = scene.objects[recursiveNearest.primitiveIndex].mat.cReflection;
                         points[childIndex].refraction= scene.objects[recursiveNearest.primitiveIndex].mat.cRefraction;
-                        points[childIndex].F = scene.objects[recursiveNearest.primitiveIndex].mat.ior + 
-                                    (1 - scene.objects[recursiveNearest.primitiveIndex].mat.ior)*pow(1-dot(surfaceToEye, normalWorld), 5); 
-
+                        
+						*/
+						points[childIndex].primitiveIndex = recursiveNearest.primitiveIndex;
                         points[childIndex].parent = index;
+                        //points[childIndex].F = scene.objects[recursiveNearest.primitiveIndex].mat.ior + 
+                        //            (1. - scene.objects[recursiveNearest.primitiveIndex].mat.ior)*pow(1.-dot(surfaceToEye, normalWorld), 5.); 
+                        //Reflection vector => F is 1?
+                        points[childIndex].F = 1.;
                     }
                     else
                         points[childIndex].parent = -2;
@@ -779,9 +797,9 @@ void main(){
                     points[childIndex].parent = -2;
                 }
                 //Refraction
-                if(points[index].parent != -3 && refr && points[index].refraction!= vec3(0.)){
+                if(points[index].parent != -2 && scene.objects[points[index].primitiveIndex].mat.cRefraction!= vec3(0.)){
                     childIndex++;
-                recursiveNearest.t = -1;
+					recursiveNearest.t = -1;
                     vec4 refractedEye; //vec4(normalize(2.*normalWorld*(dot(normalWorld, surfaceToEye)) - surfaceToEye), 0.);
 
                     for(int j=0; j<scene.n_objects; ++j){
@@ -802,42 +820,71 @@ void main(){
                         //Change new intersection values
                         points[childIndex].intersectPoint= points[index].intersectPoint + recursiveNearest.t*refractedEye;
 
-                    
+                    	if(recursiveNearest.primitiveIndex == points[index].primitiveIndex){
+						  //hit the object from the inside
+						  recursiveNearest.normalObject = -recursiveNearest.normalObject;
+						  points[childIndex].F = (1./scene.objects[recursiveNearest.primitiveIndex].mat.ior) + 
+                                    (1. - (1./scene.objects[recursiveNearest.primitiveIndex].mat.ior))*pow(1.-dot(surfaceToEye, normalWorld), 5.); 
+						}
 
                         normalWorld = normalize(transpose(mat3(inverse(scene.objects[recursiveNearest.primitiveIndex].transformation))) * recursiveNearest.normalObject);
                         surfaceToEye = normalize(camPos - points[childIndex].intersectPoint).xyz;
 
                         points[childIndex].color = diffuseAndSpecular(points[childIndex].intersectPoint, normalWorld, recursiveNearest, surfaceToEye) +
                                               scene.cAmbientCoeff*scene.objects[recursiveNearest.primitiveIndex].mat.cAmbient;
-                        points[childIndex].reflection = scene.objects[recursiveNearest.primitiveIndex].mat.cReflection;
-                        points[childIndex].refraction= scene.objects[recursiveNearest.primitiveIndex].mat.cRefraction;
-                        points[childIndex].F = scene.objects[recursiveNearest.primitiveIndex].mat.ior + (1 -  scene.objects[recursiveNearest.primitiveIndex].mat.ior)*(1-dot(surfaceToEye, normalWorld)); 
-
+                        
+						points[childIndex].primitiveIndex = recursiveNearest.primitiveIndex;
                         points[childIndex].parent = index;
+                        points[childIndex].F = scene.objects[recursiveNearest.primitiveIndex].mat.ior + 
+                                    (1. - scene.objects[recursiveNearest.primitiveIndex].mat.ior)*pow(1.-dot(surfaceToEye, normalWorld), 5.); 
                     }
                     else
-                        points[childIndex].parent = -3;
+                        points[childIndex].parent = -2;
                 }
                 else{
-                    points[childIndex].parent = -3;
+                    points[childIndex].parent = -2;
                 }
-                
+                index++;
             }
         }
 
+        vec3 refractColor = vec3(0.);
         //Go through tree in reverse to calculate reflect and refract components:
         //TODO: Figure out how to blend reflection and refraction for one point - use Fresnel term 
-        for(int i =pow(2, numRecursions+1) - 1; i >0; i-=2){
-            int parent = points[i].parent;
+        for(int i =n_points - 1; i >=0; i-=2){
+            int parentRefract = points[i].parent;
+            int parentReflect = points[i-1].parent;
+
+            int parent = (parentRefract == -2) ? parentReflect : parentRefract;
+            refractColor = vec3(0.);
+            reflectColor = vec3(0.);
+            if(parent != -2){
             //not at root or at terminated tree
-            reflectColor = scene.cReflectionCoeff*points[parent].reflection*points[i-1].color; //+ points[parent].color;
-            refractColor = scene.cRefractionCoeff*points[parent].refraction*points[i].color; // + points[parent].color;
-            points[parent].color += clamp(points[parent].F*reflectColor + (1-points[parent].F)*refractColor, vec3(0.), vec4(1.));
+            
+            if(parentReflect != -2){
+			  vec3 reflection = scene.objects[points[parentReflect].primitiveIndex].mat.cReflection;
+			  if(reflection != vec3(0.)){
+				reflectColor = scene.cSpecularCoeff*reflection*points[i-1].color; //+ points[parent].color;
+			  }
+			}
+			if(parentRefract != -2){
+			  vec3 refraction = scene.objects[points[parentRefract].primitiveIndex].mat.cRefraction;
+			  if(refraction != vec3(0.)){
+			
+				refractColor = scene.cTransparencyCoeff*refraction*points[i].color; // + points[parent].color;
+			  }
+			}
+			
+			
+			  points[parent].color += clamp(points[parent].F*reflectColor + (1-points[parent].F)*refractColor, vec3(0.), vec3(1.));
+			  }
+            
         }
-        fragColor.rgb += scene.cAmbientCoeff * scene.objects[nearest.primitiveIndex].mat.cAmbient + points[0].color;*/
+        
+        fragColor.rgb += scene.cAmbientCoeff * scene.objects[nearest.primitiveIndex].mat.cAmbient + points[0].color;
         
          
-        vec3 recursiveColors[numRecursions];
+       /* vec3 recursiveColors[numRecursions];
         vec3 reflectiveConstants[numRecursions];
         
         int i =0;
@@ -869,13 +916,7 @@ void main(){
 
                 normalWorld = normalize(transpose(mat3(inverse(scene.objects[recursiveNearest.primitiveIndex].transformation))) * recursiveNearest.normalObject);
                 surfaceToEye = normalize(camPos - intersectPoint).xyz;
-				/*if(i == 0)
-				  reflectColor = scene.cSpecularCoeff*scene.objects[prevPrimitiveIndex].mat.cReflection*(diffuseAndSpecular(intersectPoint, normalWorld, recursiveNearest, surfaceToEye) +
-                                                                                                        scene.cAmbientCoeff*scene.objects[recursiveNearest.primitiveIndex].mat.cAmbient);
-				else
-				  reflectColor *= clamp(scene.cSpecularCoeff*scene.objects[prevPrimitiveIndex].mat.cReflection*(diffuseAndSpecular(intersectPoint, normalWorld, recursiveNearest, surfaceToEye) +
-                                                                                                        scene.cAmbientCoeff*scene.objects[recursiveNearest.primitiveIndex].mat.cAmbient), vec3(0.), vec3(1.));
-				*/
+				
 				reflectiveConstants[i] = scene.objects[prevPrimitiveIndex].mat.cReflection;
 				recursiveColors[i] = diffuseAndSpecular(intersectPoint, normalWorld, recursiveNearest, surfaceToEye) +
                                       scene.cAmbientCoeff*scene.objects[recursiveNearest.primitiveIndex].mat.cAmbient;
@@ -904,7 +945,7 @@ void main(){
 
 
         
-        fragColor.rgb += scene.cAmbientCoeff * scene.objects[nearest.primitiveIndex].mat.cAmbient + diffuseAndSpecularColor + scene.cSpecularCoeff*scene.objects[nearest.primitiveIndex].mat.cReflection*reflectColor;
+        fragColor.rgb += scene.cAmbientCoeff * scene.objects[nearest.primitiveIndex].mat.cAmbient + diffuseAndSpecularColor + scene.cSpecularCoeff*scene.objects[nearest.primitiveIndex].mat.cReflection*reflectColor;*/
 
     }
     fragColor.rgb = clamp(fragColor.rgb, vec3(0.), vec3(1.));
