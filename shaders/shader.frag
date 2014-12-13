@@ -3,7 +3,7 @@
 
 #define PI 3.14159265
 #define EPSILON 0.001 //Changed from 0.01
-#define numRecursions  2
+#define numRecursions  3
 #define n_points  int(pow(2., float(numRecursions)) - 1.)
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
@@ -152,45 +152,65 @@ Scene scene;
 void createScene1(){
     
     //Number of primitive in the scene scene
-    scene.n_objects = 2;
+    scene.n_objects = 3;
     //Set first  primitives in the scene scene
     scene.objects[0].type = 3;
     scene.objects[0].transformation = mat4(1.0);
     //scene.objects[0].transformation[3][0] = sin(time);
     
-    scene.objects[0].mat.cDiffuse = vec3(0.,0.,1.0);
+    scene.objects[0].mat.cDiffuse = vec3(1.,1.,1.);
     scene.objects[0].mat.cAmbient = vec3(0.);
     scene.objects[0].mat.cSpecular = vec3(0.0);
     scene.objects[0].mat.cReflection = vec3(1.0);
-    scene.objects[0].mat.cRefraction = vec3(0.0);
+    scene.objects[0].mat.cRefraction = vec3(0.8);
     scene.objects[0].mat.shininess = 40.0;
     scene.objects[0].mat.blend = 0.;
-    scene.objects[0].mat.ior = 0.;
+    scene.objects[0].mat.ior = 1.0;
     
     scene.cAmbientCoeff = 0.5;
-    scene.cDiffuseCoeff = 0.5;
-    scene.cSpecularCoeff = 0.5;
-    
+    scene.cDiffuseCoeff = .5;
+    scene.cSpecularCoeff = .5;
+    scene.cTransparencyCoeff = .8;
+
     //Set second primitives in the scene scene
     scene.objects[1].type = 3;
     
     scene.objects[1].transformation = mat4(1.0);
-    //scene.objects[1].transformation[3][0] = sin(time);
-    scene.objects[1].transformation[3][0] = 1.0;
+    scene.objects[1].transformation[3][0] = sin(time);
+    scene.objects[1].transformation[3][2] = -1.1;
     
     
     scene.objects[1].mat.cDiffuse = vec3(1.,0., 0.);
-    scene.objects[1].mat.cAmbient = vec3(0.2);
-    scene.objects[1].mat.cSpecular = vec3(1.0);
-    scene.objects[1].mat.cReflection = vec3(0.8);
-    scene.objects[1].mat.cRefraction = vec3(0.0);
+    scene.objects[1].mat.cAmbient = vec3(0.);
+    scene.objects[1].mat.cSpecular = vec3(0.0);
+    scene.objects[1].mat.cReflection = vec3(0.0);
+    scene.objects[1].mat.cRefraction = vec3(1.0);
     scene.objects[1].mat.shininess = 15.0;
     
     scene.objects[1].mat.blend = 0.;
-    scene.objects[1].mat.ior = 0.;
+    scene.objects[1].mat.ior = 1.;
     
     
-    scene.objects[1].mat.shininess = 40.0;
+    //Set third primitives in the scene scene
+    scene.objects[2].type = 0;
+    
+    scene.objects[2].transformation = mat4(1.0);
+    //scene.objects[1].transformation[3][0] = sin(time);
+    scene.objects[2].transformation[3][2] = -6;
+    scene.objects[2].transformation[0][0] = 3;
+    scene.objects[2].transformation[1][1] = 3;
+
+    
+    scene.objects[2].mat.cDiffuse = vec3(0.,0., 1.);
+    scene.objects[2].mat.cAmbient = vec3(0.);
+    scene.objects[2].mat.cSpecular = vec3(0.0);
+    scene.objects[2].mat.cReflection = vec3(.0);
+    scene.objects[2].mat.cRefraction = vec3(0.0);
+    scene.objects[2].mat.shininess = 15.0;
+    
+    scene.objects[2].mat.blend = 0.;
+    scene.objects[2].mat.ior = 0.;
+    
     
     
     //Lights:
@@ -206,13 +226,13 @@ void createScene1(){
     scene.lights[0].color = vec3(1., 1., 1.);
     scene.lights[0].function = vec3(1., 0., 0.);
     scene.lights[1].type = 0; //point light
-    scene.lights[1].pos = vec3(0., -5., 0.);
+    scene.lights[1].pos = vec3(0., 0., 5.);
     scene.lights[1].color = vec3(1., 1., 1.);
     scene.lights[1].function = vec3(1., 0., 0.);
-    scene.lights[2].type = 0; //point light
+    /*scene.lights[2].type = 0; //point light
     scene.lights[2].pos = vec3(0., 0., 5.);
     scene.lights[2].color = vec3(1., 1., 1.);
-    scene.lights[2].function = vec3(1., 0., 0.);
+    scene.lights[2].function = vec3(1., 0., 0.);*/
     /*scene.lights[3].type = 0; //point light
     scene.lights[3].pos = vec3(-5., 5., 0.);
     scene.lights[3].color = vec3(1., 0., 0.);
@@ -222,7 +242,7 @@ void createScene1(){
     scene.lights[4].pos = vec3(5., 5., 0.);
     scene.lights[4].color = vec3(0., 0., 1.);
     scene.lights[4].function = vec3(1., 0., 0.);*/
-    scene.n_lights = 3;
+    scene.n_lights = 2;
     // scene.n_lights = 0;
 }
 
@@ -636,7 +656,6 @@ vec3 textureColor(intersectionDetails nearest, vec4 intersectPointWorld){
     //return (texture(tex, vec2(s,t))).rgb; Seems like texture() takes only unit square textures and not the actual texture co-ordinate.
     return (texture(tex, vec2(u*j,v*k))).rgb;
     
-    //return vec3(s / textureHeight,0.,0.);
     
 }
 
@@ -791,48 +810,52 @@ void main(){
 	  vec4 eye;
 	  //TODO: instead of calculating color value of child, change so that we only calculate the color of current node - will need
 	  // to change the if statements
-	  while(i < numRecursions){
+	  while(i < numRecursions && i >=0){
 
 		  k++;
 		  nearest.t = -1.;
 		  
-		 
+
 		 
 		  if(tree[index].visited ==2){
 			//reset global variables to parent when going up the tree
 			intersectPoint = tree[index].parentIntersectPoint;
-			fromEye = tree[index].fromEye;
 			maxIndex = index;
 			index--;
+			//set fromEye 
+			//fromEye = tree[index].fromEye;
+
 			i--;
 			attenuation /= last_attenuation;
 		  }
 		  else if(tree[index].visited == 1){
 			if(scene.objects[nearest.primitiveIndex].mat.cRefraction != vec3(0.)){
-			  fromEye = normalize(refract(normalize(tree[index].fromEye), tree[index].normal, tree[index].ior));
+			  fromEye = refract(tree[index].fromEye, tree[index].normal, tree[index].ior);
+			  intersectPoint -= 2*EPSILON*vec4(tree[index].normal, 0.);
 			  refl = false;
 			  i++;
+			  tree[index].visited++;
 			  index +=2;
-			  
 			  
 			}
 			else{
-			  
-			  //at the end of the tree -- need to go back up:
-			  maxIndex = index;
+			  //terminate early - set maxIndex as if we had already traversed that part of the tree
+			  maxIndex = index + int(pow(2., float(numRecursions-i))) - 2;
 			  intersectPoint = tree[index].parentIntersectPoint;
 			  i--;
+			  tree[index].visited++;
 			  index--; //Go up the tree: 1 step for reflection
 			  if(!refl)
 				index--; //Go up the tree: 2 steps for refraction  
-			}		  
+			}
 		  
 		  }
 		  //Reflection:
 		  else{
+			  //Increase visited
+			  tree[index].visited++;
 		  	  //Set the parent intersection point and normal
 			  tree[index].parentIntersectPoint = intersectPoint;
-              tree[index].fromEye = fromEye;
 			 //Compute the new object intersection			  
 			  for(int j=0; j<scene.n_objects; ++j){
 				  
@@ -848,30 +871,34 @@ void main(){
 				  tree[index].normal = normalize(transpose(inverse(mat3(scene.objects[nearest.primitiveIndex].transformation))) * nearest.normalObject);
 
 				  tree[index].ior = scene.objects[nearest.primitiveIndex].mat.ior;
-				  
+				  tree[index].fromEye = fromEye;
+
 				  
 				  if(nearest.inside)
 					tree[index].ior = 1. / scene.objects[nearest.primitiveIndex].mat.ior;
+
 				  
 				  //surfaceToEye = -reflectedEye.xyz;
 				  //Change new intersection values (first move the original intersection by epsilon along its normal)
-				  intersectPoint += vec4(EPSILON*tree[index].normal + nearest.t*fromEye, 1.);
-							  
+				  intersectPoint += vec4(EPSILON*tree[index].normal + nearest.t*fromEye,0.);
+				  vec3 attConstant = scene.cSpecularCoeff*scene.objects[nearest.primitiveIndex].mat.cReflection;
+				  if(!refl)
+					attConstant = scene.cTransparencyCoeff*scene.objects[nearest.primitiveIndex].mat.cRefraction;
+					
+				 
 				  //Calculate color from lighting, then multiply by reflective attenuation. Compute the diffuse, specular and ambient colors
 				  fragColor.rgb += attenuation*(diffuseAndSpecular(intersectPoint, tree[index].normal, nearest, normalize(-fromEye)) +
 												  scene.cAmbientCoeff*scene.objects[nearest.primitiveIndex].mat.cAmbient);
-				  vec3 attConstant = scene.objects[nearest.primitiveIndex].mat.cReflection;
-				  if(!refl)
-					attConstant = scene.objects[nearest.primitiveIndex].mat.cRefraction;
-				  refl = true;
+				  
+				  
+				  
 				  if(i != numRecursions - 1 && attConstant != vec3(0.)){
 					//update reflective attenuation                
-					last_attenuation = scene.cSpecularCoeff*attConstant; 
+					last_attenuation = attConstant; 
 					attenuation *= last_attenuation;
 					//Compute the new reflected ray
-				    fromEye = normalize(reflect(normalize(fromEye), tree[index].normal));
-				    //Increase visited
-					tree[index].visited++;
+				    fromEye = reflect(fromEye, tree[index].normal);
+
 					//increase index
 					index++;
 					//Increase the depth
@@ -885,7 +912,6 @@ void main(){
 					maxIndex = index + int(pow(2., float(numRecursions-i))) - 2;
 					i--;
 					intersectPoint = tree[index].parentIntersectPoint;
-					fromEye = tree[index].fromEye;
 					index--;  
 					
 					if(!refl)
@@ -900,12 +926,12 @@ void main(){
 					maxIndex = index + int(pow(2., float(numRecursions-i))) - 2;
 					i--;
 					intersectPoint = tree[index].parentIntersectPoint;
-					fromEye = tree[index].fromEye;
 					index--;  
 					
 					if(!refl)
 					  index--; //Go up the tree: 2 steps for refraction
 				 }
+				 refl = true;
 				 
 			
 			  
