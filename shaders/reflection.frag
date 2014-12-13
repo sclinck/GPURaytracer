@@ -156,7 +156,7 @@ void createScene1(){
     //Set first  primitives in the scene scene
     scene.objects[0].type = 3;
     scene.objects[0].transformation = mat4(1.0);
-    scene.objects[0].transformation[3][0] = cos(time);
+    //scene.objects[0].transformation[3][0] = cos(time);
     
     scene.objects[0].mat.cDiffuse = vec3(0.,0.,1.0);
     scene.objects[0].mat.cAmbient = vec3(0.);
@@ -175,8 +175,8 @@ void createScene1(){
     scene.objects[1].type = 3;
     
     scene.objects[1].transformation = mat4(1.0);
-    scene.objects[1].transformation[3][0] = 1+sin(time); //+ cos(time);
-    //scene.objects[1].transformation[3][0] = 1.0;
+//    scene.objects[1].transformation[3][0] = 1+sin(time); //+ cos(time);
+    scene.objects[1].transformation[3][0] = 1.0;
     
     
     scene.objects[1].mat.cDiffuse = vec3(1.,0., 0.);
@@ -239,7 +239,6 @@ vec4 generateRay(){
     
     vec4 d = vec4(0.);
     vec4 p_film = vec4((2.*gl_FragCoord.x / size.x)  - 1., 1. - (2.*gl_FragCoord.y / size.y), -1., 1.);
-//    vec4 p_film = vec4((2.*gl_FragCoord.x / 500.)  - 1., 1. - (2.*gl_FragCoord.y / 500.), -1., 1.);    
     vec4 p_world = inverse(view)*p_film;
     
     d = vec4(normalize(vec3(p_world - camPos)), 0.0);
@@ -489,7 +488,7 @@ bool lightBlocked(vec4 intersectionPoint, vec3 surfaceToLight, float distToLight
         
         mat4 transInverse = inverse(scene.objects[i].transformation);
         //Take p_world and d_world to object space
-//        vec4 intersectPointObject = transInverse*(intersectionPoint + EPSILON*vec4(surfaceToLight, 0.f));
+        //vec4 intersectPointObject = transInverse*(intersectionPoint + EPSILON*vec4(surfaceToLight, 0.f));
         //Note: The epsilon has already been added to the intersection point when it was passed in to diffuseAndSpecular.
         //We don't have to add it again. Also, the direction along which it was being added here is also not right. 
         //It should have been along the normal.  
