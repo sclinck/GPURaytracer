@@ -151,7 +151,7 @@ Scene scene;
 //Scene 1 is a simple white ball centered at the origin with two light : one blue and one red.
 void createScene1(){
     
-    //Number of primitive in the scene scene
+/*    //Number of primitive in the scene scene
     scene.n_objects = 2;
     //Set first  primitives in the scene scene
     scene.objects[0].type = 3;
@@ -160,7 +160,7 @@ void createScene1(){
     
     scene.objects[0].mat.cDiffuse = vec3(0.,0.,1.0);
     scene.objects[0].mat.cAmbient = vec3(0.);
-    scene.objects[0].mat.cSpecular = vec3(0.0);
+    scene.objects[0].mat.cSpecular = vec3(0.2);
     scene.objects[0].mat.cReflection = vec3(1.0);
     scene.objects[0].mat.cRefraction = vec3(0.0);
     scene.objects[0].mat.shininess = 40.0;
@@ -201,7 +201,7 @@ void createScene1(){
     scene.lights[2].pos = vec3(3., -10., 0.);
     scene.lights[2].color = vec3(1., 1., 1.);
     scene.lights[2].function = vec3(1., 0., 0.);*/
-    scene.lights[0].type = 0; //point light
+  /*  scene.lights[0].type = 0; //point light
     scene.lights[0].pos = vec3(0., 5., 0.);
     scene.lights[0].color = vec3(1., 1., 1.);
     scene.lights[0].function = vec3(1., 0., 0.);
@@ -222,8 +222,115 @@ void createScene1(){
     scene.lights[4].pos = vec3(5., 5., 0.);
     scene.lights[4].color = vec3(0., 0., 1.);
     scene.lights[4].function = vec3(1., 0., 0.);*/
-    scene.n_lights = 3;
+ /*   scene.n_lights = 3;
     // scene.n_lights = 0;
+ */
+ 
+     //Number of primitive in the scene scene
+    scene.n_objects = 4;
+    //Set first  primitives in the scene scene
+    scene.objects[0].type = 3;
+    scene.objects[0].transformation = mat4(1.0);
+    scene.objects[0].transformation[3][0] = -.5 + sin(time);
+    
+    scene.objects[0].mat.cDiffuse = vec3(1.,1.,1.);
+    scene.objects[0].mat.cAmbient = vec3(0.);
+    scene.objects[0].mat.cSpecular = vec3(0.0);
+    scene.objects[0].mat.cReflection = vec3(1.0);
+    scene.objects[0].mat.cRefraction = vec3(0.8);
+    scene.objects[0].mat.shininess = 0.0;
+    scene.objects[0].mat.blend = 0.;
+    scene.objects[0].mat.ior = 1.0;
+    
+    scene.cAmbientCoeff = 0.5;
+    scene.cDiffuseCoeff = .5;
+    scene.cSpecularCoeff = .5;
+    scene.cTransparencyCoeff = .8;
+
+       
+    scene.objects[1].type = 3;
+    
+    scene.objects[1].transformation = mat4(1.0);
+    scene.objects[1].transformation[3][1] = 1 - 2*cos(time);
+    
+    
+    scene.objects[1].mat.cDiffuse = vec3(.52,.8, 0.98);
+    scene.objects[1].mat.cAmbient = vec3(0.);
+    scene.objects[1].mat.cSpecular = vec3(0.0);
+    scene.objects[1].mat.cReflection = vec3(.6, .8, 0.8);
+    scene.objects[1].mat.cRefraction = vec3(0.);
+    scene.objects[1].mat.shininess = 0.0;
+    
+    scene.objects[1].mat.blend = 0.;
+    scene.objects[1].mat.ior = 0.;
+    
+    
+    //Set third primitives in the scene scene
+    scene.objects[2].type = 0;
+    
+    scene.objects[2].transformation = mat4(1.0);
+    scene.objects[2].transformation[3][2] = -6;
+    scene.objects[2].transformation[3][0] = -1;
+
+    scene.objects[2].transformation[0][0] = 3;
+    scene.objects[2].transformation[1][1] = 3;
+
+    
+    scene.objects[2].mat.cDiffuse = vec3(0.3,0.2, .4);
+    scene.objects[2].mat.cAmbient = vec3(0.);
+    scene.objects[2].mat.cSpecular = vec3(0.0);
+    scene.objects[2].mat.cReflection = vec3(.5,.3,0.8);
+    scene.objects[2].mat.cRefraction = vec3(0);
+    scene.objects[2].mat.shininess = 0.0;
+    
+    scene.objects[2].mat.blend = .5;
+    scene.objects[2].mat.ior = .0;
+    
+    scene.objects[3].type = 0;
+    
+    scene.objects[3].transformation = mat4(1.0);
+    scene.objects[3].transformation[3][0] = -2.2;
+    scene.objects[3].transformation[3][2] = 2;
+
+    scene.objects[3].transformation[1][1] = 3;
+    scene.objects[3].transformation[2][2] = 3;
+
+    
+    scene.objects[3].mat.cDiffuse = vec3(0.2,0.4, 0.);
+    scene.objects[3].mat.cAmbient = vec3(0.);
+    scene.objects[3].mat.cSpecular = vec3(0.0);
+    scene.objects[3].mat.cReflection = vec3(0.0,0.5,0.);
+    scene.objects[3].mat.cRefraction = vec3(0);
+    scene.objects[3].mat.shininess = 0.0;
+    
+    scene.objects[3].mat.blend = 0.;
+    scene.objects[3].mat.ior = 0;
+    
+
+    
+    
+    
+    //Lights:
+    
+    
+    
+
+    scene.lights[0].type = 0; //point light
+    scene.lights[0].pos = vec3(3., 3., -3.);
+    scene.lights[0].color = vec3(1., 1., 1.);
+    scene.lights[0].function = vec3(1., 0., 0.);
+    scene.lights[1].type = 0; //point light
+    scene.lights[1].pos = vec3(3., 3., 3.);
+    scene.lights[1].color = vec3(1., 1., 1.);
+    scene.lights[1].function = vec3(1., 0., 0.);
+    scene.lights[2].type = 0; //point light
+    scene.lights[2].pos = vec3(0., 3., 0.);
+    scene.lights[2].color = vec3(1., 1., 1.);
+    scene.lights[2].function = vec3(1., 0., 0.);
+
+    scene.n_lights = 3;
+    
+    
 }
 
 
@@ -233,7 +340,14 @@ void createScene1(){
 
 
 /****************************************************************************************************************************/
-
+//Generate two random numbers between 0 and 1
+vec2 rand(vec2 seed){
+    //return fract(sin(dot(seed ,vec2(12.9898,78.233))) * 43758.5453);    
+    //Standard random number generator
+    float x1 = (fract(sin(dot(seed, vec2(12.9898,78.233) * 2.0)) * 43758.5453));
+    float x2 = sqrt(1-x1*x1);
+    return vec2(x1, x2);
+}
 
 
 vec4 generateRay(){
@@ -685,72 +799,176 @@ vec3 diffuseAndSpecular(vec4 intersectPoint, vec3 normalWorld, intersectionDetai
 }
 
 
+vec3 generateRandomRay(vec3 normalObject){
+
+    //Sample from the hemisphere above the point from a uniform distribution
+
+    //Solid angle of a hemisphere
+    float solidAngle = 2*PI;
+      
+    //Compute seed for random numbers
+    vec2 seed;
+    seed.x = sin(time) + gl_FragCoord.x / size.x;
+    seed.y = cos(time) + gl_FragCoord.y / size.y;    
+    
+    //Using standard formulation from the web
+    vec2 randNums = rand(seed);
+    float phi = 2*PI*randNums.x;
+    float alpha = acos(1-(1-cos(solidAngle))*randNums.y);
+    
+    //Generate x, y and z vector in the wold space co-ordinate system of the scene
+    float x = sin(alpha)*cos(phi);
+    float y = sin(alpha)*sin(phi);
+    float z = -1.*cos(alpha);
+    
+    //Rotate this hemisphere to lie along the normal of the object
+    //Compute rotation matrix using rodriuez formulation
+    mat3 firstMatrix;
+    //First column
+    firstMatrix[0] = vec3(normalObject.z, 0., -normalObject.x); 
+    //Second column
+    firstMatrix[1] = vec3(0., normalObject.z, -normalObject.y); 
+    //Third column
+    firstMatrix[2] = vec3(normalObject.x, normalObject.y, normalObject.z); 
+
+    mat3 secondMatrix;
+    //First column
+    secondMatrix[0] = vec3(normalObject.y*normalObject.y, -normalObject.x*normalObject.y, 0.); 
+    //Second column
+    secondMatrix[1] = vec3(-normalObject.x*normalObject.y, normalObject.x*normalObject.x, 0.); 
+    //Third column
+    secondMatrix[2] = vec3(0., 0., 0.); 
+    //Multiply by scalar
+    secondMatrix *= 1/(1+normalObject.z);
+    
+    //Compose rotation matrix    
+    mat3 rotationMatrix =  firstMatrix + secondMatrix; 
+    
+    //Rotate the random vector so that the hemisphere aligns with normal    
+    vec3 randomRay = rotationMatrix * vec3(x,y,z);
+    
+    return randomRay;     
+}
+
 void main(){
     
-    
+    //Store intersection details
     intersectionDetails nearest;
     
+    //Create scene
     if(sceneType == 1)
         createScene1();
-    
+
+    //Final pixel color    
     fragColor = vec4(0.);
     
     vec3 reflectiveAtt = vec3(1.);
-    vec4 intersectPoint = camPos;
+    vec4 intersectPointInitial = camPos;
     
-    
-    //Generate the ray in the worls space corresponding to the current screen space pixel
+    //Do the first intersection    
+    //Generate the ray in the world space corresponding to the current screen space pixel
     vec4 fromEye = generateRay();
     vec3 normalWorld;
-    
-    //intersectionDetails recursiveNearest;
-    for(int i =0; i<numRecursions; i++){
-        
-        nearest.t = -1.;
-        
-        //vec4 reflectedEye = vec4(normalize(reflect(-surfaceToEye, normalWorld)), 0);//vec4(normalize(2.*normalWorld*(dot(normalWorld, surfaceToEye)) - surfaceToEye), 0.);
-        
-        for(int j=0; j<scene.n_objects; ++j){
-            
-            mat4 transInverse = inverse(scene.objects[j].transformation);
-            //Take p_world and d_world to object space
-            vec4 p_object = transInverse*intersectPoint;
-            vec4 d_object = transInverse*fromEye;
-            
-            //Compute the intersection with the object
-            intersect(scene.objects[j].type, p_object.xyz, d_object.xyz, nearest, j);
-        }
-        
-        
-        if(nearest.t > 0.){
-            normalWorld = normalize(transpose(inverse(mat3(scene.objects[nearest.primitiveIndex].transformation))) * nearest.normalObject);
-            
-            //surfaceToEye = -reflectedEye.xyz;
-            //Change new intersection values (first move the original intersection by epsilon along its normal)
-            intersectPoint += vec4(EPSILON*normalWorld, 0.) + nearest.t*fromEye;
-                        
-            //Calculate color from lighting, then multiply by reflective attenuation. Compute the diffuse, specular and ambient colors
-            fragColor.rgb += reflectiveAtt*(diffuseAndSpecular(intersectPoint, normalWorld, nearest, normalize(-fromEye.xyz)) +
-                                            scene.cAmbientCoeff*scene.objects[nearest.primitiveIndex].mat.cAmbient);
-            //update reflective attenuation                
-            reflectiveAtt *= scene.cSpecularCoeff*scene.objects[nearest.primitiveIndex].mat.cReflection;
-            
-            fromEye = normalize(reflect(normalize(fromEye), vec4(normalWorld,0.)));
-            
-            //if the object we just hit is not reflective, can stop
-            if(scene.objects[nearest.primitiveIndex].mat.cReflection == vec3(0.))
-                break;
-        }
-        else{
-            //The ray did not intersect any object. Stop the recursion
-            break;
-        }
+    nearest.t = -1.;
+    for(int j=0; j<scene.n_objects; ++j){
+	
+	mat4 transInverse = inverse(scene.objects[j].transformation);
+	//Take p_world and d_world to object space
+	vec4 p_object = transInverse*intersectPointInitial;
+	vec4 d_object = transInverse*fromEye;
+	
+	//Compute the intersection with the object
+	intersect(scene.objects[j].type, p_object.xyz, d_object.xyz, nearest, j);
     }
     
-    
-  
-    fragColor.rgb = clamp(fragColor.rgb, vec3(0.), vec3(1.));
-    
+    //If there is a valid first intersection
+    if(nearest.t > 0.){
+
+      //Compute the normal for lighting at that point
+      normalWorld = normalize(transpose(inverse(mat3(scene.objects[nearest.primitiveIndex].transformation))) * nearest.normalObject);
+      
+      //Change new intersection values (first move the original intersection by epsilon along its normal)
+      intersectPointInitial += vec4(EPSILON*normalWorld, 0.) + nearest.t*fromEye;
+		  
+      //Calculate color from lighting, then multiply by reflective attenuation. Compute the diffuse, specular and ambient colors
+      fragColor.rgb += (diffuseAndSpecular(intersectPointInitial, normalWorld, nearest, normalize(-fromEye.xyz)) +
+				      scene.cAmbientCoeff*scene.objects[nearest.primitiveIndex].mat.cAmbient);
+
+	
+      //Spawn random rays in uniformly sampled directions to comptue the net reflective component
+      //Number of samples 
+      int numSamples = 10;
+      vec3 reflectiveComponentsSum = vec3(0.,0.,0.);
+            
+      for(int i=0; i<numSamples; ++i){
+
+	//Initialize net recursive colorf or this sample
+	vec4 fragColorRecursive = vec4(0.);
+
+	//Initialize reflective attenuation
+	vec3 reflectiveAtt = scene.cSpecularCoeff*scene.objects[nearest.primitiveIndex].mat.cReflection;
+	  
+	//Generate the random ray in the world space at the point of intersection
+	vec4 fromEye = vec4(generateRandomRay(normalWorld), 0.0);
+	vec3 normalWorld;      
+	vec4 intersectPoint = intersectPointInitial;
+      
+	//Compute recursive ray tracing for multiple depths
+	for(int i =0; i<numRecursions; i++){
+	    
+	    nearest.t = -1.;
+	    
+	    for(int j=0; j<scene.n_objects; ++j){
+		
+		mat4 transInverse = inverse(scene.objects[j].transformation);
+		//Take p_world and d_world to object space
+		vec4 p_object = transInverse*intersectPoint;
+		vec4 d_object = transInverse*fromEye;
+		
+		//Compute the intersection with the object
+		intersect(scene.objects[j].type, p_object.xyz, d_object.xyz, nearest, j);
+	    }
+	    
+	    
+	    if(nearest.t > 0.){
+		normalWorld = normalize(transpose(inverse(mat3(scene.objects[nearest.primitiveIndex].transformation))) * nearest.normalObject);
+		
+		//surfaceToEye = -reflectedEye.xyz;
+		//Change new intersection values (first move the original intersection by epsilon along its normal)
+		intersectPoint += vec4(EPSILON*normalWorld, 0.) + nearest.t*fromEye;
+			    
+		//Calculate color from lighting, then multiply by reflective attenuation. Compute the diffuse, specular and ambient colors
+		fragColorRecursive.rgb += reflectiveAtt*(diffuseAndSpecular(intersectPoint, normalWorld, nearest, normalize(-fromEye.xyz)) +
+						scene.cAmbientCoeff*scene.objects[nearest.primitiveIndex].mat.cAmbient);
+		//update reflective attenuation                
+		reflectiveAtt *= scene.cSpecularCoeff*scene.objects[nearest.primitiveIndex].mat.cReflection;
+		
+		//Generate a random eye direction further
+		vec4 fromEye = vec4(generateRandomRay(normalWorld), 0.0);
+		
+		//if the object we just hit is not reflective, can stop
+		if(scene.objects[nearest.primitiveIndex].mat.cReflection == vec3(0.))
+		    break;
+	    }
+	    else{
+		//The ray did not intersect any object. Stop the recursion
+		break;
+	    }
+	}
+        
+        //Store the reflective color component 
+        reflectiveComponentsSum += fragColorRecursive.rgb;
+        }
+        
+        //Compute the average reflective component
+        reflectiveComponentsSum = reflectiveComponentsSum/numSamples;
+        
+        //Compute final frag color 
+        fragColor.rgb += reflectiveComponentsSum;
+        
+        }
+        
+	fragColor.rgb = clamp(fragColor.rgb, vec3(0.), vec3(1.));
 }
 
 

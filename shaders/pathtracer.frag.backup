@@ -233,7 +233,14 @@ void createScene1(){
 
 
 /****************************************************************************************************************************/
-
+//Generate two random numbers between 0 and 1
+vec2 rand(vec2 seed){
+    //return fract(sin(dot(seed ,vec2(12.9898,78.233))) * 43758.5453);    
+    //Standard random number generator
+    float x1 = (fract(sin(dot(seed, vec2(12.9898,78.233) * 2.0)) * 43758.5453));
+    float x2 = sqrt(1-x1*x1);
+    return vec2(x1, x2);
+}
 
 
 vec4 generateRay(){
@@ -685,23 +692,162 @@ vec3 diffuseAndSpecular(vec4 intersectPoint, vec3 normalWorld, intersectionDetai
 }
 
 
+vec3 generateRandomRay(vec3 normalObject){
+
+    //Sample from the hemisphere above the point from a uniform distribution
+
+    //Solid angle of a hemisphere
+    float solidAngle = 2*PI;
+      
+    //Compute seed for random numbers
+    vec2 seed;
+    seed.x = sin(time) + gl_FragCoord.x / size.x;
+    seed.y = cos(time) + gl_FragCoord.y / size.y;    
+    
+    //Using standard formulation from the web
+    vec2 randNums = rand(seed);
+    float phi = 2*pi*randNums.x;
+    float alpha = acos(1-(1-cos(solidAngle))*randNums.y);
+    
+    //Generate x, y and z vector in the wold space co-ordinate system of the scene
+    float x = sin(alpha)*cos(phi);
+    float y = sin(alpha)*sin(phi);
+    float z = -1.*cos(alpha);
+    
+    //Rotate this hemisphere to lie along the normal of the object
+    //Compute rotation matrix using rodriuez formulation
+    
+    
+    
+    return vec3(x,y,z);     
+}
+
 void main(){
     
-    
+    //Store intersection details
     intersectionDetails nearest;
     
+    //Create scene
     if(sceneType == 1)
         createScene1();
-    
+
+    //Final pixel color    
     fragColor = vec4(0.);
     
     vec3 reflectiveAtt = vec3(1.);
     vec4 intersectPoint = camPos;
     
-    
-    //Generate the ray in the worls space corresponding to the current screen space pixel
+    //Do the first intersection    
+    //Generate the ray in the world space corresponding to the current screen space pixel
     vec4 fromEye = generateRay();
     vec3 normalWorld;
+    nearest.t = -1.;
+    for(int j=0; j<scene.n_objects; ++j){
+	
+	mat4 transInverse = inverse(scene.objects[j].transformation);
+	//Take p_world and d_world to object space
+	vec4 p_object = transInverse*intersectPoint;
+	vec4 d_object = transInverse*fromEye;
+	
+	//Compute the intersection with the object
+	intersect(scene.objects[j].type, p_object.xyz, d_object.xyz, nearest, j);
+    }
+    
+    //If there is a valid first intersection
+    if(nearest.t > 0.){
+
+      //Compute the normal for lighting at that point
+      normalWorld = normalize(transpose(inverse(mat3(scene.objects[nearest.primitiveIndex].transformation))) * nearest.normalObject);
+      
+      //Change new intersection values (first move the original intersection by epsilon along its normal)
+      intersectPoint += vec4(EPSILON*normalWorld, 0.) + nearest.t*fromEye;
+		  
+      //Calculate color from lighting, then multiply by reflective attenuation. Compute the diffuse, specular and ambient colors
+      fragColor.rgb += (diffuseAndSpecular(intersectPoint, normalWorld, nearest, normalize(-fromEye.xyz)) +
+				      scene.cAmbientCoeff*scene.objects[nearest.primitiveIndex].mat.cAmbient);
+
+	
+      //Spawn random rays in uniformly sampled directions to comptue the net reflective component
+      //Number of samples 
+      numSamples = 100;
+      float reflectiveComponents[numSamples];
+      
+      //Initialize net recursive color.
+      fragColorRecursive = vec4(0.);
+      //Initialize reflective attenuation
+      vec3 reflectiveAtt = scene.cSpecularCoeff*scene.objects[nearest.primitiveIndex].mat.cReflection;
+        
+      //Generate the ray in the world space corresponding to the current screen space pixel
+      vec4 fromEye = vec4(generateRandomRay(), 0.0);
+      vec3 normalWorld;
+      
+      for(int i=0; i<numSamples; ++i){
+      
+	//Compute recursive ray tracing for multiple depths
+	for(int i =0; i<numRecursions; i++){
+	    
+	    nearest.t = -1.;
+	    
+	    //vec4 reflectedEye = vec4(normalize(reflect(-surfaceToEye, normalWorld)), 0);//vec4(normalize(2.*normalWorld*(dot(normalWorld, surfaceToEye)) - surfaceToEye), 0.);
+	    
+	    for(int j=0; j<scene.n_objects; ++j){
+		
+		mat4 transInverse = inverse(scene.objects[j].transformation);
+		//Take p_world and d_world to object space
+		vec4 p_object = transInverse*intersectPoint;
+		vec4 d_object = transInverse*fromEye;
+		
+		//Compute the intersection with the object
+		intersect(scene.objects[j].type, p_object.xyz, d_object.xyz, nearest, j);
+	    }
+	    
+	    
+	    if(nearest.t > 0.){
+		normalWorld = normalize(transpose(inverse(mat3(scene.objects[nearest.primitiveIndex].transformation))) * nearest.normalObject);
+		
+		//surfaceToEye = -reflectedEye.xyz;
+		//Change new intersection values (first move the original intersection by epsilon along its normal)
+		intersectPoint += vec4(EPSILON*normalWorld, 0.) + nearest.t*fromEye;
+			    
+		//Calculate color from lighting, then multiply by reflective attenuation. Compute the diffuse, specular and ambient colors
+		fragColor.rgb += reflectiveAtt*(diffuseAndSpecular(intersectPoint, normalWorld, nearest, normalize(-fromEye.xyz)) +
+						scene.cAmbientCoeff*scene.objects[nearest.primitiveIndex].mat.cAmbient);
+		//update reflective attenuation                
+		reflectiveAtt *= scene.cSpecularCoeff*scene.objects[nearest.primitiveIndex].mat.cReflection;
+		
+		fromEye = normalize(reflect(normalize(fromEye), vec4(normalWorld,0.)));
+		
+		//if the object we just hit is not reflective, can stop
+		if(scene.objects[nearest.primitiveIndex].mat.cReflection == vec3(0.))
+		    break;
+	    }
+	    else{
+		//The ray did not intersect any object. Stop the recursion
+		break;
+	    }
+	}
+      
+
+        
+        
+	//Spawn random rays from the new intersection point uniformly sampled around the normal
+	vec3 randomRay = generateRandomRay(); 
+
+	//update reflective attenuation                
+	reflectiveAtt *= scene.cSpecularCoeff*scene.objects[nearest.primitiveIndex].mat.cReflection;
+	
+	fromEye = normalize(reflect(normalize(fromEye), vec4(normalWorld,0.)));
+	
+	//if the object we just hit is not reflective, can stop
+	if(scene.objects[nearest.primitiveIndex].mat.cReflection == vec3(0.))
+	    break;
+    
+    
+    
+    
+    
+    
+    
     
     //intersectionDetails recursiveNearest;
     for(int i =0; i<numRecursions; i++){

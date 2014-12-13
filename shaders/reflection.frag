@@ -234,6 +234,16 @@ void createScene1(){
 
 /****************************************************************************************************************************/
 
+/*//Generate a random number between 0 and 1
+float rand(){ 
+  return fract(sin(seed++)*43758.5453123); 
+}
+*/
+//Generate a random number between 0 and 1
+float rand(vec2 seed){
+    return fract(sin(dot(seed ,vec2(12.9898,78.233))) * 43758.5453);
+}
+
 
 vec4 generateRay(){
     
