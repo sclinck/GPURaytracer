@@ -55,88 +55,29 @@
        <property name="title">
         <string>Scenes</string>
        </property>
-       <widget class="QRadioButton" name="sceneTypeSimple">
-        <property name="geometry">
-         <rect>
-          <x>20</x>
-          <y>30</y>
-          <width>102</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Scene 1</string>
-        </property>
-       </widget>
-       <widget class="QRadioButton" name="sceneTypeCornell">
-        <property name="geometry">
-         <rect>
-          <x>20</x>
-          <y>50</y>
-          <width>102</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Scene 2</string>
-        </property>
-       </widget>
-       <widget class="QRadioButton" name="sceneTypeSpecial1">
-        <property name="geometry">
-         <rect>
-          <x>20</x>
-          <y>80</y>
-          <width>102</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Scene 3</string>
-        </property>
-       </widget>
-      </widget>
-     </item>
-     <item>
-      <widget class="QGroupBox" name="Effects">
-       <property name="title">
-        <string>Effects</string>
-       </property>
-       <widget class="QSlider" name="depthOfViewSlider">
-        <property name="geometry">
-         <rect>
-          <x>40</x>
-          <y>60</y>
-          <width>111</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-       <widget class="QLineEdit" name="depthOfViewBox">
-        <property name="geometry">
-         <rect>
-          <x>150</x>
-          <y>60</y>
-          <width>41</width>
-          <height>21</height>
-         </rect>
-        </property>
-       </widget>
-       <widget class="QCheckBox" name="depthOfView">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>40</y>
-          <width>131</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Depth of View</string>
-        </property>
-       </widget>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QRadioButton" name="sceneTypeSimple">
+          <property name="text">
+           <string>Scene 1</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="sceneTypeCornell">
+          <property name="text">
+           <string>Scene 2</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="sceneTypeSpecial1">
+          <property name="text">
+           <string>Scene 3</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </item>
     </layout>
@@ -149,8 +90,63 @@
    <class>View</class>
    <extends>QWidget</extends>
    <header>view.h</header>
+   <slots>
+    <slot>setDepthOfField(int)</slot>
+    <slot>setScene1()</slot>
+    <slot>setScene2()</slot>
+    <slot>setScene3()</slot>
+   </slots>
   </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>sceneTypeCornell</sender>
+   <signal>clicked()</signal>
+   <receiver>view</receiver>
+   <slot>setScene1()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>70</x>
+     <y>174</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>471</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>sceneTypeSimple</sender>
+   <signal>clicked()</signal>
+   <receiver>view</receiver>
+   <slot>setScene2()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>70</x>
+     <y>106</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>471</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>sceneTypeSpecial1</sender>
+   <signal>clicked()</signal>
+   <receiver>view</receiver>
+   <slot>setScene3()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>70</x>
+     <y>242</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>471</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

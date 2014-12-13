@@ -14,6 +14,13 @@ public:
     ~View();
     void settingsChanged();
 
+
+public slots:
+    void setScene1();
+    void setScene2();
+    void setScene3();
+
+    //void setDepthOfField(int depth);
 private:
     QTime time;
     QTimer timer;
@@ -31,8 +38,18 @@ private:
 
     GLuint m_shader;
 
+    int m_scene;
+    int m_depth;
+    int m_width;
+    int m_height;
+
 private slots:
     void tick();
+signals:
+    void scene1Set();
+    //void depthOfFieldChanged(int depth);
+    //void depthOfFieldToggled(bool toggle);
+
 };
 
 #endif // VIEW_H

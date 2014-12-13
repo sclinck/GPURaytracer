@@ -24,7 +24,9 @@ HEADERS += mainwindow.h \
 FORMS += mainwindow.ui
 OTHER_FILES += shaders/shader.frag shaders/shader.vert \
     shaders/shader.frag \
-    shaders/shader.vert
+    shaders/shader.vert \
+    shaders/phong.frag \
+    shaders/phong.vert
 
 
 

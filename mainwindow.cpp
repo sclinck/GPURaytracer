@@ -9,7 +9,15 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-#define BIND(b) { \
+
+    //connect(ui->view, SIGNAL(depthOfFieldChanged(int)), ui->depthOfViewSlider, SLOT(setValue(int)));
+    connect(ui->view, SIGNAL(scene1Set()), ui->sceneTypeCornell, SLOT(click()));
+
+    //connect(ui->view, SIGNAL(depthOfFieldToggled(bool)), ui->depthOfViewSlider, SLOT(setEnabled(bool)));
+
+
+
+/*#define BIND(b) { \
     DataBinding *_b = (b); \
     m_bindings.push_back(_b); \
     assert(connect(_b, SIGNAL(dataChanged()), this, SLOT(settingsChanged()))); \
@@ -28,7 +36,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     BIND(IntBinding::bindSliderAndTextbox(
         ui->depthOfViewSlider, ui->depthOfViewBox, settings.depthOfViewFocus, 0, 96))
-    BIND( BoolBinding::bindCheckbox(ui->depthOfView, settings.depthOfView) )
+    BIND( BoolBinding::bindCheckbox(ui->depthOfView, settings.depthOfView) )*/
 
 }
 

@@ -24,7 +24,7 @@ float width = 500.;
 float aperture = size.x/ size.y;
 
 
-vec4 camPos = vec4(0.,0.,50.,1.);
+vec4 camPos = vec4(10.,0.,50.,1.);
 float far = 10.;
 float aspectRatio = 1.;
 float heightAngle = 2.*atan(1.,(2.*far));
@@ -64,19 +64,13 @@ mat4 view = camScale*camRotate*camTranslate;
 
 struct Node
 {
-    //int parentID;
-    //bool reflection;
+
     int visited;
     vec4 parentIntersectPoint;
     vec3 normal;
     vec3 fromEye;
     float ior;
-    //vec4 intersectPoint;
-    //vec3 color;
-    //vec3 reflection;
-    //vec3 refraction;
-    //float F; //fresnel term - need to store this because it depends on whether or not object was hit from the inside.
-    //int primitiveIndex;
+
     
 };
 
@@ -96,13 +90,7 @@ struct Primitive
     int type; //CUBE = 0, CONE = 1, CYLINDER = 2, SPHERE = 3
     mat4 transformation;
     
-    /*
-      vec3 pos;
-      //for rotation:
-      vec3 rotation;
-      float angle;
-      
-      vec3 scale;*/
+
     Material mat;
     
 };
@@ -125,7 +113,7 @@ struct Scene
     float cSpecularCoeff;
     float cTransparencyCoeff;
     
-    Light lights[5];
+    Light lights[3];
     int n_lights;
     
 };
@@ -145,25 +133,24 @@ struct intersectionDetails
 //Global variable to store the current scene
 Scene scene;
 
-/****************************************************************************************************************************/
 //Functions that create the different scenes:
 
 //Scene 1 is a simple white ball centered at the origin with two light : one blue and one red.
 void createScene1(){
     
     //Number of primitive in the scene scene
-    scene.n_objects = 3;
+    scene.n_objects = 4;
     //Set first  primitives in the scene scene
     scene.objects[0].type = 3;
     scene.objects[0].transformation = mat4(1.0);
-    //scene.objects[0].transformation[3][0] = sin(time);
+    scene.objects[0].transformation[3][0] = -.5 + sin(time);
     
     scene.objects[0].mat.cDiffuse = vec3(1.,1.,1.);
     scene.objects[0].mat.cAmbient = vec3(0.);
     scene.objects[0].mat.cSpecular = vec3(0.0);
     scene.objects[0].mat.cReflection = vec3(1.0);
     scene.objects[0].mat.cRefraction = vec3(0.8);
-    scene.objects[0].mat.shininess = 40.0;
+    scene.objects[0].mat.shininess = 0.0;
     scene.objects[0].mat.blend = 0.;
     scene.objects[0].mat.ior = 1.0;
     
@@ -172,44 +159,66 @@ void createScene1(){
     scene.cSpecularCoeff = .5;
     scene.cTransparencyCoeff = .8;
 
-    //Set second primitives in the scene scene
+       
     scene.objects[1].type = 3;
     
     scene.objects[1].transformation = mat4(1.0);
-    scene.objects[1].transformation[3][0] = sin(time);
-    scene.objects[1].transformation[3][2] = -1.1;
+    scene.objects[1].transformation[3][1] = 1 - 2*cos(time);
     
     
-    scene.objects[1].mat.cDiffuse = vec3(1.,0., 0.);
+    scene.objects[1].mat.cDiffuse = vec3(.52,.8, 0.98);
     scene.objects[1].mat.cAmbient = vec3(0.);
     scene.objects[1].mat.cSpecular = vec3(0.0);
-    scene.objects[1].mat.cReflection = vec3(0.0);
-    scene.objects[1].mat.cRefraction = vec3(1.0);
-    scene.objects[1].mat.shininess = 15.0;
+    scene.objects[1].mat.cReflection = vec3(.6, .8, 0.8);
+    scene.objects[1].mat.cRefraction = vec3(0.);
+    scene.objects[1].mat.shininess = 0.0;
     
     scene.objects[1].mat.blend = 0.;
-    scene.objects[1].mat.ior = 1.;
+    scene.objects[1].mat.ior = 0.;
     
     
     //Set third primitives in the scene scene
     scene.objects[2].type = 0;
     
     scene.objects[2].transformation = mat4(1.0);
-    //scene.objects[1].transformation[3][0] = sin(time);
     scene.objects[2].transformation[3][2] = -6;
+    scene.objects[2].transformation[3][0] = -1;
+
     scene.objects[2].transformation[0][0] = 3;
     scene.objects[2].transformation[1][1] = 3;
 
     
-    scene.objects[2].mat.cDiffuse = vec3(0.,0., 1.);
+    scene.objects[2].mat.cDiffuse = vec3(0.3,0.2, .4);
     scene.objects[2].mat.cAmbient = vec3(0.);
     scene.objects[2].mat.cSpecular = vec3(0.0);
-    scene.objects[2].mat.cReflection = vec3(.0);
-    scene.objects[2].mat.cRefraction = vec3(0.0);
-    scene.objects[2].mat.shininess = 15.0;
+    scene.objects[2].mat.cReflection = vec3(.5,.3,0.8);
+    scene.objects[2].mat.cRefraction = vec3(0);
+    scene.objects[2].mat.shininess = 0.0;
     
-    scene.objects[2].mat.blend = 0.;
-    scene.objects[2].mat.ior = 0.;
+    scene.objects[2].mat.blend = .5;
+    scene.objects[2].mat.ior = .0;
+    
+    scene.objects[3].type = 0;
+    
+    scene.objects[3].transformation = mat4(1.0);
+    scene.objects[3].transformation[3][0] = -2.2;
+    scene.objects[3].transformation[3][2] = 2;
+
+    scene.objects[3].transformation[1][1] = 3;
+    scene.objects[3].transformation[2][2] = 3;
+
+    
+    scene.objects[3].mat.cDiffuse = vec3(0.2,0.4, 0.);
+    scene.objects[3].mat.cAmbient = vec3(0.);
+    scene.objects[3].mat.cSpecular = vec3(0.0);
+    scene.objects[3].mat.cReflection = vec3(0.0,0.5,0.);
+    scene.objects[3].mat.cRefraction = vec3(0);
+    scene.objects[3].mat.shininess = 0.0;
+    
+    scene.objects[3].mat.blend = 0.;
+    scene.objects[3].mat.ior = 0;
+    
+
     
     
     
@@ -217,33 +226,21 @@ void createScene1(){
     
     
     
-    /*scene.lights[2].type = 0; //point light
-    scene.lights[2].pos = vec3(3., -10., 0.);
-    scene.lights[2].color = vec3(1., 1., 1.);
-    scene.lights[2].function = vec3(1., 0., 0.);*/
+
     scene.lights[0].type = 0; //point light
-    scene.lights[0].pos = vec3(0., 5., 0.);
+    scene.lights[0].pos = vec3(3., 3., -3.);
     scene.lights[0].color = vec3(1., 1., 1.);
     scene.lights[0].function = vec3(1., 0., 0.);
     scene.lights[1].type = 0; //point light
-    scene.lights[1].pos = vec3(0., 0., 5.);
+    scene.lights[1].pos = vec3(3., 3., 3.);
     scene.lights[1].color = vec3(1., 1., 1.);
     scene.lights[1].function = vec3(1., 0., 0.);
-    /*scene.lights[2].type = 0; //point light
-    scene.lights[2].pos = vec3(0., 0., 5.);
+    scene.lights[2].type = 0; //point light
+    scene.lights[2].pos = vec3(0., 3., 0.);
     scene.lights[2].color = vec3(1., 1., 1.);
-    scene.lights[2].function = vec3(1., 0., 0.);*/
-    /*scene.lights[3].type = 0; //point light
-    scene.lights[3].pos = vec3(-5., 5., 0.);
-    scene.lights[3].color = vec3(1., 0., 0.);
-    scene.lights[3].function = vec3(1., 0., 0.);
-    
-    scene.lights[4].type = 0; //point light
-    scene.lights[4].pos = vec3(5., 5., 0.);
-    scene.lights[4].color = vec3(0., 0., 1.);
-    scene.lights[4].function = vec3(1., 0., 0.);*/
-    scene.n_lights = 2;
-    // scene.n_lights = 0;
+    scene.lights[2].function = vec3(1., 0., 0.);
+
+    scene.n_lights = 3;
 }
 
 
@@ -251,8 +248,6 @@ void createScene1(){
 
 
 
-
-/****************************************************************************************************************************/
 
 
 vec4 generateRay(){
@@ -719,57 +714,7 @@ void main(){
     
     fragColor = vec4(0.);
     
-    /*vec3 reflectiveAtt = vec3(1.);
-    vec4 intersectPoint = camPos;
-    
-    
-    //Generate the ray in the worls space corresponding to the current screen space pixel
-    vec4 fromEye = generateRay();
-    vec3 normalWorld;
-    
-    //intersectionDetails recursiveNearest;
-    for(int i =0; i<numRecursions; i++){
-        
-        nearest.t = -1.;
-        
-        //vec4 reflectedEye = vec4(normalize(reflect(-surfaceToEye, normalWorld)), 0);//vec4(normalize(2.*normalWorld*(dot(normalWorld, surfaceToEye)) - surfaceToEye), 0.);
-        
-        for(int j=0; j<scene.n_objects; ++j){
-            
-            mat4 transInverse = inverse(scene.objects[j].transformation);
-            //Take p_world and d_world to object space
-            vec4 p_object = transInverse*intersectPoint;
-            vec4 d_object = transInverse*fromEye;
-            
-            //Compute the intersection with the object
-            intersect(scene.objects[j].type, p_object.xyz, d_object.xyz, nearest, j);
-        }
-        
-        
-        if(nearest.t > 0){
-            normalWorld = normalize(transpose(inverse(mat3(scene.objects[nearest.primitiveIndex].transformation))) * nearest.normalObject);
-            
-            //surfaceToEye = -reflectedEye.xyz;
-            //Change new intersection values (first move the original intersection by epsilon along its normal)
-            intersectPoint += vec4(EPSILON*normalWorld, 0.) + nearest.t*fromEye;
-                        
-            //Calculate color from lighting, then multiply by reflective attenuation. Compute the diffuse, specular and ambient colors
-            fragColor.rgb += reflectiveAtt*(diffuseAndSpecular(intersectPoint, normalWorld, nearest, normalize(-fromEye.xyz)) +
-                                            scene.cAmbientCoeff*scene.objects[nearest.primitiveIndex].mat.cAmbient);
-            //update reflective attenuation                
-            reflectiveAtt *= scene.cSpecularCoeff*scene.objects[nearest.primitiveIndex].mat.cReflection;
-            
-            fromEye = normalize(reflect(normalize(fromEye), vec4(normalWorld,0.)));
-            
-            //if the object we just hit is not reflective, can stop
-            if(scene.objects[nearest.primitiveIndex].mat.cReflection == vec3(0.))
-                break;
-        }
-        else{
-            //The ray did not intersect any object. Stop the recursion
-            break;
-        }
-    }*/
+
    
     
     

@@ -14,15 +14,12 @@
 #include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QButtonGroup>
-#include <QtWidgets/QCheckBox>
 #include <QtWidgets/QDockWidget>
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QHeaderView>
-#include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QRadioButton>
-#include <QtWidgets/QSlider>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 #include "view.h"
@@ -39,13 +36,10 @@ public:
     QWidget *dockWidgetContents;
     QVBoxLayout *verticalLayout;
     QGroupBox *Scenes;
+    QVBoxLayout *verticalLayout_2;
     QRadioButton *sceneTypeSimple;
     QRadioButton *sceneTypeCornell;
     QRadioButton *sceneTypeSpecial1;
-    QGroupBox *Effects;
-    QSlider *depthOfViewSlider;
-    QLineEdit *depthOfViewBox;
-    QCheckBox *depthOfView;
 
     void setupUi(QMainWindow *MainWindow)
     {
@@ -82,37 +76,35 @@ public:
         verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
         Scenes = new QGroupBox(dockWidgetContents);
         Scenes->setObjectName(QStringLiteral("Scenes"));
+        verticalLayout_2 = new QVBoxLayout(Scenes);
+        verticalLayout_2->setSpacing(6);
+        verticalLayout_2->setContentsMargins(11, 11, 11, 11);
+        verticalLayout_2->setObjectName(QStringLiteral("verticalLayout_2"));
         sceneTypeSimple = new QRadioButton(Scenes);
         sceneTypeSimple->setObjectName(QStringLiteral("sceneTypeSimple"));
-        sceneTypeSimple->setGeometry(QRect(20, 30, 102, 20));
+
+        verticalLayout_2->addWidget(sceneTypeSimple);
+
         sceneTypeCornell = new QRadioButton(Scenes);
         sceneTypeCornell->setObjectName(QStringLiteral("sceneTypeCornell"));
-        sceneTypeCornell->setGeometry(QRect(20, 50, 102, 20));
+
+        verticalLayout_2->addWidget(sceneTypeCornell);
+
         sceneTypeSpecial1 = new QRadioButton(Scenes);
         sceneTypeSpecial1->setObjectName(QStringLiteral("sceneTypeSpecial1"));
-        sceneTypeSpecial1->setGeometry(QRect(20, 80, 102, 20));
+
+        verticalLayout_2->addWidget(sceneTypeSpecial1);
+
 
         verticalLayout->addWidget(Scenes);
-
-        Effects = new QGroupBox(dockWidgetContents);
-        Effects->setObjectName(QStringLiteral("Effects"));
-        depthOfViewSlider = new QSlider(Effects);
-        depthOfViewSlider->setObjectName(QStringLiteral("depthOfViewSlider"));
-        depthOfViewSlider->setGeometry(QRect(40, 60, 111, 20));
-        depthOfViewSlider->setOrientation(Qt::Horizontal);
-        depthOfViewBox = new QLineEdit(Effects);
-        depthOfViewBox->setObjectName(QStringLiteral("depthOfViewBox"));
-        depthOfViewBox->setGeometry(QRect(150, 60, 41, 21));
-        depthOfView = new QCheckBox(Effects);
-        depthOfView->setObjectName(QStringLiteral("depthOfView"));
-        depthOfView->setGeometry(QRect(10, 40, 131, 20));
-
-        verticalLayout->addWidget(Effects);
 
         sideBar->setWidget(dockWidgetContents);
         MainWindow->addDockWidget(static_cast<Qt::DockWidgetArea>(1), sideBar);
 
         retranslateUi(MainWindow);
+        QObject::connect(sceneTypeCornell, SIGNAL(clicked()), view, SLOT(setScene1()));
+        QObject::connect(sceneTypeSimple, SIGNAL(clicked()), view, SLOT(setScene2()));
+        QObject::connect(sceneTypeSpecial1, SIGNAL(clicked()), view, SLOT(setScene3()));
 
         QMetaObject::connectSlotsByName(MainWindow);
     } // setupUi
@@ -124,8 +116,6 @@ public:
         sceneTypeSimple->setText(QApplication::translate("MainWindow", "Scene 1", 0));
         sceneTypeCornell->setText(QApplication::translate("MainWindow", "Scene 2", 0));
         sceneTypeSpecial1->setText(QApplication::translate("MainWindow", "Scene 3", 0));
-        Effects->setTitle(QApplication::translate("MainWindow", "Effects", 0));
-        depthOfView->setText(QApplication::translate("MainWindow", "Depth of View", 0));
     } // retranslateUi
 
 };
