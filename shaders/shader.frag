@@ -792,7 +792,7 @@ void main(){
 	  vec4 eye;
 	  //TODO: instead of calculating color value of child, change so that we only calculate the color of current node - will need
 	  // to change the if statements
-	  while(k < 5){
+	  while(true){
 		  k++;
 		  nearest.t = -1.;
 		  
