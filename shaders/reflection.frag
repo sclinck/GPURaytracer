@@ -3,7 +3,7 @@
 
 #define PI 3.14159265
 #define EPSILON 0.001 //Changed from 0.01
-#define numRecursions  2
+#define numRecursions  3
 #define n_points  int(pow(2., float(numRecursions)) - 1.)
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
@@ -21,11 +21,11 @@ out vec4 fragColor;
 
 float width = 500.;
 
-float aperture = size.x/ size.y;
+float aperture = 1.;
 
 
-vec4 camPos = vec4(0.,0.,50.,1.);
-float far = 10.;
+vec4 camPos = vec4(0.,0.,100.,1.);
+float far = 30.;
 float aspectRatio = 1.;
 float heightAngle = 2.*atan(1.,(2.*far));
 
@@ -40,7 +40,7 @@ vec4 up = vec4(v1.xyz, 0.);
 float tan_h = tan(heightAngle/2.);
 float height = 2.*far *tan_h;
 float tan_w = (aspectRatio*height) / (2. * far);
-float radius = 0.5;
+float radius = 0.25;
 
 
 mat4 camScale = transpose(mat4(1./(far*tan_w), 0. ,             0.,        0.,
@@ -164,7 +164,7 @@ void createScene1(){
     scene.objects[0].mat.cReflection = vec3(1.0);
     scene.objects[0].mat.cRefraction = vec3(0.0);
     scene.objects[0].mat.shininess = 40.0;
-    scene.objects[0].mat.blend = 0.;
+    scene.objects[0].mat.blend = 0.5;
     scene.objects[0].mat.ior = 0.;
     
     scene.cAmbientCoeff = 0.5;
@@ -175,8 +175,8 @@ void createScene1(){
     scene.objects[1].type = 3;
     
     scene.objects[1].transformation = mat4(1.0);
-    //scene.objects[1].transformation[3][0] = sin(time);
-    scene.objects[1].transformation[3][0] = 1.0;
+    //scene.objects[1].transformation[3][0] = sin(time) + cos(time);
+    scene.objects[1].transformation[3][0] = 0.50;
     
     
     scene.objects[1].mat.cDiffuse = vec3(1.,0., 0.);
@@ -239,10 +239,10 @@ vec4 generateRay(){
     
     vec4 d = vec4(0.);
     vec4 p_film = vec4((2.*gl_FragCoord.x / size.x)  - 1., 1. - (2.*gl_FragCoord.y / size.y), -1., 1.);
-    
+//    vec4 p_film = vec4((2.*gl_FragCoord.x / 500)  - 1., 1. - (2.*gl_FragCoord.y / 500), -1., 1.);    
     vec4 p_world = inverse(view)*p_film;
     
-    d = vec4(normalize(vec3(p_world - camPos)), 0.0);
+    d = vec4(normalize(vec3(p_world - camPos)), 1.0);
     
     return d;
 }
@@ -475,7 +475,7 @@ void intersect(int type, vec3 p_object, vec3 d_object, inout intersectionDetails
         
     }
     
-    if(dot(nearest.normalObject, -(d_object)) <0 ){
+    if(dot(nearest.normalObject, p_object + nearest.t*d_object) <0 ){
 	  nearest.inside = true;
 	  nearest.normalObject = -nearest.normalObject;
     
@@ -645,7 +645,7 @@ vec3 diffuseAndSpecular(vec4 intersectPoint, vec3 normalWorld, intersectionDetai
     
     vec3 color = vec3(0.);
     float distToLight;
-    float f_att = 1.;
+    float f_att;
     //Iterate over all lights; skip the light if any object is blocking it. 
     for(int l=0; l < scene.n_lights; l++){
         
@@ -659,6 +659,7 @@ vec3 diffuseAndSpecular(vec4 intersectPoint, vec3 normalWorld, intersectionDetai
         }else{
             //Distacne to light for directional light is infinity
             distToLight = 1./0.;
+            f_att = 1.0;
         }
         
         //Check for shadows        
@@ -700,7 +701,7 @@ void main(){
     
     fragColor = vec4(0.);
     
-    /*vec3 reflectiveAtt = vec3(1.);
+    vec3 reflectiveAtt = vec3(1.);
     vec4 intersectPoint = camPos;
     
     
@@ -750,169 +751,10 @@ void main(){
             //The ray did not intersect any object. Stop the recursion
             break;
         }
-    }*/
-   
+    }
     
     
-    
-    
-    
-    
-    //START OF REFRACTION. ABOVE CODE SHOULD WORK FOR REFLECTIONS ONLY
-    
-    
-    
-    
-    vec3 fromEye = generateRay().xyz;
-    vec4 intersectPoint = camPos;
-    vec3 attenuation = vec3(1.);
-    vec3 last_attenuation = attenuation;
-    //First Intersection:
-    fragColor = vec4(0.);   
-        
-              
-        
-        
-      Node tree[n_points];
-	  
-	  
-	  //initialize all nodes as not visited
-	  for(int i = 0; i < n_points; i++){
-		  tree[i].visited = 0;
-	  }
-	  int parent;
-	  int i =0;
-	  int index = 0;
-	  int maxIndex = 0;
-	  bool refl = true;
-	  //float attenuation = 1;
-	  bool noHit = false;
-	  int k = 0;
-	  vec4 eye;
-	  //TODO: instead of calculating color value of child, change so that we only calculate the color of current node - will need
-	  // to change the if statements
-	  while(i < numRecursions){
-
-		  k++;
-		  nearest.t = -1.;
-		  
-		 
-		 
-		  if(tree[index].visited ==2){
-			//reset global variables to parent when going up the tree
-			intersectPoint = tree[index].parentIntersectPoint;
-			fromEye = tree[index].fromEye;
-			maxIndex = index;
-			index--;
-			i--;
-			attenuation /= last_attenuation;
-		  }
-		  else if(tree[index].visited == 1){
-			if(scene.objects[nearest.primitiveIndex].mat.cRefraction != vec3(0.)){
-			  fromEye = normalize(refract(normalize(tree[index].fromEye), tree[index].normal, tree[index].ior));
-			  refl = false;
-			  i++;
-			  index +=2;
-			  
-			  
-			}
-			else{
-			  
-			  //at the end of the tree -- need to go back up:
-			  maxIndex = index;
-			  intersectPoint = tree[index].parentIntersectPoint;
-			  i--;
-			  index--; //Go up the tree: 1 step for reflection
-			  if(!refl)
-				index--; //Go up the tree: 2 steps for refraction  
-			}		  
-		  
-		  }
-		  //Reflection:
-		  else{
-		  	  //Set the parent intersection point and normal
-			  tree[index].parentIntersectPoint = intersectPoint;
-              tree[index].fromEye = fromEye;
-			 //Compute the new object intersection			  
-			  for(int j=0; j<scene.n_objects; ++j){
-				  
-				  mat4 transInverse = inverse(scene.objects[j].transformation);
-				  //Take p_world and d_world to object space
-				  vec4 p_object = transInverse*intersectPoint;
-				  vec4 d_object = transInverse*vec4(fromEye,0.);
-				  
-				  //Compute the intersection with the object
-				  intersect(scene.objects[j].type, p_object.xyz, d_object.xyz, nearest, j);
-			  }
-			  if(nearest.t > 0){
-				  tree[index].normal = normalize(transpose(inverse(mat3(scene.objects[nearest.primitiveIndex].transformation))) * nearest.normalObject);
-
-				  tree[index].ior = scene.objects[nearest.primitiveIndex].mat.ior;
-				  
-				  
-				  if(nearest.inside)
-					tree[index].ior = 1. / scene.objects[nearest.primitiveIndex].mat.ior;
-				  
-				  //surfaceToEye = -reflectedEye.xyz;
-				  //Change new intersection values (first move the original intersection by epsilon along its normal)
-				  intersectPoint += vec4(EPSILON*tree[index].normal + nearest.t*fromEye, 1.);
-							  
-				  //Calculate color from lighting, then multiply by reflective attenuation. Compute the diffuse, specular and ambient colors
-				  fragColor.rgb += attenuation*(diffuseAndSpecular(intersectPoint, tree[index].normal, nearest, normalize(-fromEye)) +
-												  scene.cAmbientCoeff*scene.objects[nearest.primitiveIndex].mat.cAmbient);
-				  vec3 attConstant = scene.objects[nearest.primitiveIndex].mat.cReflection;
-				  if(!refl)
-					attConstant = scene.objects[nearest.primitiveIndex].mat.cRefraction;
-				  refl = true;
-				  if(i != numRecursions - 1 && attConstant != vec3(0.)){
-					//update reflective attenuation                
-					last_attenuation = scene.cSpecularCoeff*attConstant; 
-					attenuation *= last_attenuation;
-					//Compute the new reflected ray
-				    fromEye = normalize(reflect(normalize(fromEye), tree[index].normal));
-				    //Increase visited
-					tree[index].visited++;
-					//increase index
-					index++;
-					//Increase the depth
-					i++;
-				 }
-				 else{
-					//At last node of the tree => finished calculating all colors
-					if(index == n_points-1)
-					  break;
-					  
-					maxIndex = index + int(pow(2., float(numRecursions-i))) - 2;
-					i--;
-					intersectPoint = tree[index].parentIntersectPoint;
-					fromEye = tree[index].fromEye;
-					index--;  
-					
-					if(!refl)
-					  index--; //Go up the tree: 2 steps for refraction  
-				 } 
-			  }else{
-				
-			  
-					if(index == n_points-1)
-					  break;
-					//at the end of the tree or early stopping point-- need to go back up but need correct maxIndex if ending early:
-					maxIndex = index + int(pow(2., float(numRecursions-i))) - 2;
-					i--;
-					intersectPoint = tree[index].parentIntersectPoint;
-					fromEye = tree[index].fromEye;
-					index--;  
-					
-					if(!refl)
-					  index--; //Go up the tree: 2 steps for refraction
-				 }
-				 
-			
-			  
-		  
-		 
-		  }
-	}
+  
     fragColor.rgb = clamp(fragColor.rgb, vec3(0.), vec3(1.));
     
 }

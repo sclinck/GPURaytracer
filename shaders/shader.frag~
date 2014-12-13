@@ -791,7 +791,11 @@ void main(){
 	  vec4 eye;
 	  //TODO: instead of calculating color value of child, change so that we only calculate the color of current node - will need
 	  // to change the if statements
+<<<<<<< HEAD
 	  while(i < numRecursions){
+=======
+	  while(true){
+>>>>>>> b3b84569d46a25275fb5944df0b667639c0b6598
 		  k++;
 		  nearest.t = -1.;
 		  
